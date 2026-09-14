@@ -41,6 +41,13 @@ en:{
   readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary — tap any word to hear it:",
   writeP:"Write <b>1 of 3</b> sentences correctly as the officer dictates it. Study the official writing vocabulary — tap any word to hear it:",
   readVocab:"Reading vocabulary", writeVocab:"Writing vocabulary",
+  dictH:"Dictation practice",
+  dictD:"Like the real test: the officer reads a sentence and you write it. Write <b>1 of 3</b> correctly to pass. These practice sentences use only the official writing vocabulary — USCIS does not publish the real test sentences.",
+  dictStart:"Start dictation", dictPlay:"🔊 Play sentence", dictPh:"Type what you hear…",
+  dictCheck:"Check", dictNext:"Next →", dictQ:(a,b)=>`Sentence ${a} of ${b}`,
+  dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
+  dictRight:"The sentence was:", dictYour:"You wrote:",
+  dictDone:"Dictation complete!", dictScore:(s)=>`${s} of 3 correct`,
   intTitle:"Interview questions",
   intIntro:"At your interview, the officer asks these personal questions from <b>Part 9 of Form N-400</b> (edition 01/20/25). Most are answered “No” — the last ones, about the Oath, are answered “Yes”. Always answer truthfully.",
   intSource:"Source: official Form N-400, Part 9. Spanish is a study aid only.",
@@ -109,6 +116,13 @@ es:{
   readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura — toca cualquier palabra para escucharla:",
   writeP:"Escribe <b>1 de 3</b> oraciones correctamente mientras el oficial la dicta. Estudia el vocabulario oficial de escritura — toca cualquier palabra para escucharla:",
   readVocab:"Vocabulario de lectura", writeVocab:"Vocabulario de escritura",
+  dictH:"Práctica de dictado",
+  dictD:"Como en el examen real: el oficial lee una frase y tú la escribes. Escribe bien <b>1 de 3</b> para aprobar. Estas frases de práctica usan solo el vocabulario oficial de escritura — USCIS no publica las frases reales del examen.",
+  dictStart:"Empezar el dictado", dictPlay:"🔊 Escuchar la frase", dictPh:"Escribe lo que escuches…",
+  dictCheck:"Revisar", dictNext:"Siguiente →", dictQ:(a,b)=>`Frase ${a} de ${b}`,
+  dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
+  dictRight:"La frase era:", dictYour:"Escribiste:",
+  dictDone:"¡Dictado completado!", dictScore:(s)=>`${s} de 3 correctas`,
   intTitle:"Preguntas de la entrevista",
   intIntro:"En tu entrevista, el oficial hace estas preguntas personales de la <b>Parte 9 del Formulario N-400</b> (edición 01/20/25). La mayoría se responden «No» — las últimas, sobre el juramento, se responden «Sí». Responde siempre con la verdad.",
   intSource:"Fuente: Formulario oficial N-400, Parte 9. El español es solo ayuda para estudiar.",
@@ -175,13 +189,13 @@ const qkey = n => (filed==="before"?"08":"25") + ":" + n;
 let voices = [];
 function loadVoices(){ try{ voices = speechSynthesis.getVoices(); }catch(e){} }
 if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-function speak(text){
+function speak(text, rate){
   if(!("speechSynthesis" in window)) return;
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang === "es" ? "es-US" : "en-US";
-    u.rate = 0.88; u.pitch = 1;
+    u.rate = rate || 0.88; u.pitch = 1;
     const v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang === "es" ? "es" : "en"));
     if(v) u.voice = v;
     speechSynthesis.speak(u);
@@ -392,7 +406,51 @@ function renderEnglish(){
     <h3>🗣️ ${esc(t.speakH)}</h3><p>${t.speakP}</p>
     <h3>📖 ${esc(t.readingTitle)}</h3><p>${t.readP}</p>${chips(READING_VOCAB)}
     <h3>✏️ ${esc(t.writingTitle)}</h3><p>${t.writeP}</p>${chips(WRITING_VOCAB)}
+  </div>
+  <div class="card"><h2>🎧 ${esc(t.dictH)}</h2><p>${t.dictD}</p>
+    <div class="center"><button class="btn coral" id="dictStart">${esc(t.dictStart)}</button></div>
   </div>`;
+  el.querySelector("#dictStart").onclick = startDictation;
+}
+/* ---------- dictation ---------- */
+let dz = null;
+function normWords(s){ return s.toLowerCase().replace(/[.,!?;:'"]/g,"").split(/\s+/).filter(Boolean); }
+function startDictation(){
+  dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0 };
+  renderDictQ();
+}
+function renderDictQ(){
+  const t = T(), el = document.getElementById("v-english"), s = dz.order[dz.idx];
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, 3))}</div>
+    <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
+    <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+    <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
+  el.querySelector("#dzPlay").onclick = ()=>speak(s, 0.7);
+  el.querySelector("#dzCheck").onclick = checkDictation;
+}
+function checkDictation(){
+  const t = T(), el = document.getElementById("v-english"), s = dz.order[dz.idx];
+  const rawIn = el.querySelector("#dzIn").value;
+  const tw = normWords(s), iw = normWords(rawIn);
+  const right = tw.length===iw.length && tw.every((w,i)=>w===iw[i]);
+  if(right) dz.ok++;
+  const words = tw.map((w,i)=>`<span class="dw${iw[i]===w?" ok":" bad"}">${esc(w)}</span>`).join(" ");
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, 3))}</div>
+    <div class="${right?"fb-ok":"fb-bad"}">${right?"✓":"✗"} ${esc(right?t.dictCorrect:t.dictWrong)}</div>
+    <div class="alabel">${esc(t.dictRight)}</div><p class="dwords">${words}</p>
+    ${rawIn.trim()?`<div class="alabel">${esc(t.dictYour)}</div><p class="note">“${esc(rawIn.trim())}”</p>`:""}
+    <div class="center"><button class="btn coral" id="dzNext">${esc(t.dictNext)}</button></div></div>`;
+  el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=3?renderDictDone():renderDictQ(); };
+}
+function renderDictDone(){
+  const t = T(), el = document.getElementById("v-english"), pass = dz.ok>=1;
+  el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
+    <h2>${esc(t.dictDone)}</h2><p style="color:var(--muted)">${esc(t.dictScore(dz.ok))}</p>
+    <p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>
+    <button class="btn coral" id="dzAgain">${esc(t.intAgain)}</button>
+    <div><button class="btn ghost" id="dzBack">← ${esc(t.writingTitle)}</button></div></div>`;
+  el.querySelector("#dzAgain").onclick = startDictation;
+  el.querySelector("#dzBack").onclick = ()=>{ dz=null; renderEnglish(); };
 }
 
 /* ---------- interview ---------- */
