@@ -16,7 +16,7 @@ en:{
   variesTitle:"⚠ This answer changes",
   variesText:"Officeholders and local answers change over time. Check the current answer before your interview:",
   variesVerified:"Last verified Sept 2026",
-  variesLinkLabel:{senators:"Find your senators → senate.gov",representative:"Find your representative → house.gov",governor:"Find your governor → usa.gov","state capital":"State capitals → usa.gov",office:"Current officeholders → uscis.gov/testupdates"},
+  variesLinkLabel:{senators:"Find your senators → senate.gov",representative:"Find your representative → house.gov",governor:"Find your governor → usa.gov","state capital":"State capitals → usa.gov",justices:"Number of justices → uscis.gov/testupdates",office:"Current officeholders → uscis.gov/testupdates"},
   practiceTitle:"Practice test", start:"Start",
   practiceIntro:"Like the real interview: questions are asked out loud. Read each question, say your answer out loud, then check yourself honestly.",
   testStd:"2025 test — standard", testStdDesc:"Up to 20 questions · 12 correct to pass · stops at 9 wrong",
@@ -70,7 +70,7 @@ es:{
   variesTitle:"⚠ Esta respuesta cambia",
   variesText:"Los funcionarios y las respuestas locales cambian con el tiempo. Verifica la respuesta actual antes de tu entrevista:",
   variesVerified:"Verificado en septiembre de 2026",
-  variesLinkLabel:{senators:"Encuentra tus senadores → senate.gov",representative:"Encuentra tu representante → house.gov",governor:"Encuentra tu gobernador → usa.gov","state capital":"Capitales estatales → usa.gov",office:"Funcionarios actuales → uscis.gov/testupdates"},
+  variesLinkLabel:{senators:"Encuentra tus senadores → senate.gov",representative:"Encuentra tu representante → house.gov",governor:"Encuentra tu gobernador → usa.gov","state capital":"Capitales estatales → usa.gov",justices:"Número de jueces → uscis.gov/testupdates",office:"Funcionarios actuales → uscis.gov/testupdates"},
   practiceTitle:"Examen de práctica", start:"Comenzar",
   practiceIntro:"Como en la entrevista real: las preguntas se hacen en voz alta. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
   testStd:"Examen 2025 — estándar", testStdDesc:"Hasta 20 preguntas · 12 correctas para aprobar · se detiene con 9 errores",
@@ -117,7 +117,8 @@ const VARIES_LINK = {
   "speaker":"https://www.uscis.gov/citizenship/testupdates",
   "president":"https://www.uscis.gov/citizenship/testupdates",
   "vice president":"https://www.uscis.gov/citizenship/testupdates",
-  "chief justice":"https://www.uscis.gov/citizenship/testupdates"
+  "chief justice":"https://www.uscis.gov/citizenship/testupdates",
+  "justices":"https://www.uscis.gov/citizenship/testupdates"
 };
 
 /* ---------- state ---------- */
@@ -215,7 +216,7 @@ function qCardHTML(q){
 function renderStudy(){
   const t = T(), el = document.getElementById("v-study");
   const chipAll = `<button class="chip${studyCat==="all"?" on":""}" data-c="all">${esc(t.all)}</button>`;
-  const chipStar = filed==="before" ? "" : `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
+  const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
   const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
   el.innerHTML = filingCard() + `<div class="card"><h2>${esc(t.studyTitle)}</h2>
@@ -273,7 +274,7 @@ function renderPractice(){
       <p class="note">${esc(filed==="before" ? t.practiceIntro08 : t.practiceIntro)}</p>
       <div class="pill-row">
         <button class="btn big" data-p="std">▶ ${esc(filed==="before" ? t.testStd08 : t.testStd)}<br><span style="font-weight:400;font-size:13px">${esc(filed==="before" ? t.testStdDesc08 : t.testStdDesc)}</span></button>
-        ${filed==="before" ? "" : `<button class="btn big ghost" data-p="senior">★ ${esc(t.testSenior)}<br><span style="font-weight:400;font-size:13px">${esc(t.testSeniorDesc)}</span></button>`}
+        <button class="btn big ghost" data-p="senior">★ ${esc(t.testSenior)}<br><span style="font-weight:400;font-size:13px">${esc(t.testSeniorDesc)}</span></button>
       </div>
       ${mcount?`<button class="btn big gold" data-p="review" style="margin-top:10px">${esc(typeof t.reviewBtn==="function"?t.reviewBtn(mcount):t.reviewBtn)}</button>
       <p class="note">${esc(t.reviewIntro)}</p>`:""}
