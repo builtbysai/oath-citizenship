@@ -205,14 +205,15 @@ const qkey = n => (filed==="before"?"08":"25") + ":" + n;
 let voices = [];
 function loadVoices(){ try{ voices = speechSynthesis.getVoices(); }catch(e){} }
 if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-function speak(text, rate){
+function speak(text, rate, en){
   if(!("speechSynthesis" in window)) return;
   try{
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang === "es" ? "es-US" : "en-US";
+    const useEn = en || lang === "en";
+    u.lang = useEn ? "en-US" : "es-US";
     u.rate = rate || 0.88; u.pitch = 1;
-    const v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang === "es" ? "es" : "en"));
+    const v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(useEn ? "en" : "es"));
     if(v) u.voice = v;
     speechSynthesis.speak(u);
   }catch(e){}
@@ -446,7 +447,7 @@ function renderReadQ(){
     <p class="note">${esc(t.readHonest)}</p>
     <div class="ynrow"><button class="btn big ghost" id="rpOk">${esc(t.readOk)}</button>
     <button class="btn big ghost" id="rpNo">${esc(t.readNo)}</button></div></div>`;
-  el.querySelector("#rpHear").onclick = ()=>speak(s);
+  el.querySelector("#rpHear").onclick = ()=>speak(s, 0, true);
   el.querySelector("#rpOk").onclick = ()=>{ rp.ok++; rpNext(); };
   el.querySelector("#rpNo").onclick = rpNext;
 }
@@ -474,7 +475,7 @@ function renderDictQ(){
     <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
     <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
-  el.querySelector("#dzPlay").onclick = ()=>speak(s, 0.7);
+  el.querySelector("#dzPlay").onclick = ()=>speak(s, 0.7, true);
   el.querySelector("#dzCheck").onclick = checkDictation;
 }
 function checkDictation(){
@@ -561,7 +562,7 @@ function renderInterviewQ(){
     <div class="center"><button class="iconbtn" id="intSpeak">🔊 ${esc(t.listen)}</button></div>
     <div class="ynrow"><button class="btn big ghost" data-yn="y">${esc(t.intYes)}</button>
     <button class="btn big ghost" data-yn="n">${esc(t.intNo)}</button></div></div>`;
-  el.querySelector("#intSpeak").onclick = ()=>speak(q.en);
+  el.querySelector("#intSpeak").onclick = ()=>speak(q.en, 0, true);
 }
 function interviewAnswer(yes){
   const t = T(), el = document.getElementById("v-interview"), q = ipz.order[ipz.idx];
@@ -627,7 +628,7 @@ document.addEventListener("click", e=>{
   const s = e.target.closest("[data-s]"); if(s){ studyStar=!studyStar; renderStudy(); return; }
   const p = e.target.closest("[data-p]"); if(p){ startPractice(p.dataset.p); return; }
   const r = e.target.closest("[data-r]"); if(r){ practiceAnswer(r.dataset.r==="y"); return; }
-  const w = e.target.closest("[data-w]"); if(w){ speak(w.dataset.w); return; }
+  const w = e.target.closest("[data-w]"); if(w){ speak(w.dataset.w, 0, true); return; }
   const ncard = e.target.closest(".nqcard");
   if(ncard){
     const actBtn = e.target.closest("[data-act]");
@@ -635,7 +636,7 @@ document.addEventListener("click", e=>{
       const q = N400.questions.find(x=>x.item===ncard.dataset.item);
       const act = actBtn.dataset.act;
       if(act==="toggle"){ ncard.classList.toggle("open"); }
-      else if(act==="speak"){ e.stopPropagation(); speak(q.en); }
+      else if(act==="speak"){ e.stopPropagation(); speak(q.en, 0, true); }
       return;
     }
   }
