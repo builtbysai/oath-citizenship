@@ -2,7 +2,7 @@
 const STR = {
 en:{
   appSub:"Study for U.S. Citizenship",
-  tabs:[["study","📖","Study"],["practice","✍️","Practice"],["english","🗣️","English"],["process","📋","Process"],["resources","🔗","Resources"]],
+  tabs:[["study","📖","Study"],["practice","✍️","Practice"],["interview","🎤","Interview"],["english","🗣️","English"],["process","📋","Process"],["resources","🔗","Resources"]],
   filingTitle:"When did you file Form N-400?",
   filedBefore:"Before Oct 20, 2025", filedAfter:"On / after Oct 20, 2025",
   testAfterHTML:"<b>You take the 2025 civics test:</b> 128 study questions. The officer asks up to 20 — you need <b>12 correct</b> to pass (it stops early at 9 wrong).",
@@ -41,6 +41,20 @@ en:{
   readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary — tap any word to hear it:",
   writeP:"Write <b>1 of 3</b> sentences correctly as the officer dictates it. Study the official writing vocabulary — tap any word to hear it:",
   readVocab:"Reading vocabulary", writeVocab:"Writing vocabulary",
+  intTitle:"Interview questions",
+  intIntro:"At your interview, the officer asks these personal questions from <b>Part 9 of Form N-400</b> (edition 01/20/25). Most are answered “No” — the last ones, about the Oath, are answered “Yes”. Always answer truthfully.",
+  intSource:"Source: official Form N-400, Part 9. Spanish is a study aid only.",
+  intMeaning:"What it means",
+  expNo:"Usually “No”", expYes:"Usually “Yes”", expVaries:"Depends on you",
+  expVariesNote:"Answer truthfully — it depends on your situation.",
+  fNo:"Usually No", fYes:"Usually Yes", fDep:"Depends",
+  intPracticeH:"Practice the interview", intPracticeD:"10 random questions · tap Yes or No, like the officer asks.",
+  intStart:"Start practice",
+  intQ:(a,b)=>`Question ${a} of ${b}`,
+  intCorrect:"Correct ✓", intWrong:"Not quite ✗",
+  intVariesFb:"This one depends on your situation — at the real interview, answer truthfully.",
+  intDone:"Interview practice complete!", intScore:(s)=>`${s} of 10 correct`,
+  intAgain:"Practice again", intNext:"Next →",
   procTitle:"The road to citizenship", eligH:"Who can apply (5-year path)",
   elig:["Be 18 or older when you file","Be a lawful permanent resident (green card holder) for at least 5 years","Have continuous residence in the U.S. for 5 years before filing","Be physically present in the U.S. at least 30 of the last 60 months","Have lived at least 3 months in the state or USCIS district where you apply","Show good moral character for the 5 years before filing","Be attached to the principles of the U.S. Constitution","Be able to read, write, and speak basic English","Know U.S. history and government (the tests in this app)","Take the Oath of Allegiance"],
   stepsH:"The 8 steps",
@@ -52,11 +66,11 @@ en:{
   resTitle:"Official resources",
   resIntro:"Always trust uscis.gov first. These are the official pages behind everything in this app:",
   res:[["2025 Civics Test (official)","The official 2025 test page and the 128-question study bank (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Check for Test Updates","Answers that change (president, senators, governor…). Check before your interview.","https://www.uscis.gov/citizenship/testupdates"],["Study for the Test","All official USCIS study materials in one place.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 Steps to Naturalization","The official step-by-step process.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Exceptions & Accommodations","Age, disability, and other exceptions explained.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Multilingual Resources","Official USCIS materials in Spanish, Arabic, Chinese, Korean, Tagalog, Vietnamese (for the 2008 test).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["2008 Test Questions (official text)","The 100-question bank for applications filed before Oct 20, 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Reduced Fee Request","How to request the $380 reduced filing fee.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
-  disc:"<b>Study aid only — not legal advice.</b> Spanish translations are study help; the official 2025 test materials are published in English only. Some answers (president, senators, governor…) change over time — always check <b>uscis.gov/citizenship/testupdates</b> before your interview. Question content: USCIS M-1778 (09/25), verified Sept 2026."
+  disc:"<b>Study aid only — not legal advice.</b> Spanish translations are study help; the official 2025 test materials are published in English only. Some answers (president, senators, governor…) change over time — always check <b>uscis.gov/citizenship/testupdates</b> before your interview. Question content: USCIS M-1778 (09/25) and Form N-400 (01/20/25) Part 9, verified Sept 2026."
 },
 es:{
   appSub:"Estudia para la ciudadanía estadounidense",
-  tabs:[["study","📖","Estudiar"],["practice","✍️","Practicar"],["english","🗣️","Inglés"],["process","📋","Proceso"],["resources","🔗","Recursos"]],
+  tabs:[["study","📖","Estudiar"],["practice","✍️","Practicar"],["interview","🎤","Entrevista"],["english","🗣️","Inglés"],["process","📋","Proceso"],["resources","🔗","Recursos"]],
   filingTitle:"¿Cuándo presentaste el Formulario N-400?",
   filedBefore:"Antes del 20 de oct. de 2025", filedAfter:"El 20 de oct. de 2025 o después",
   testAfterHTML:"<b>Tomas el examen de educación cívica 2025:</b> 128 preguntas de estudio. El oficial hace hasta 20 preguntas — necesitas <b>12 correctas</b> para aprobar (se detiene con 9 errores).",
@@ -95,6 +109,20 @@ es:{
   readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura — toca cualquier palabra para escucharla:",
   writeP:"Escribe <b>1 de 3</b> oraciones correctamente mientras el oficial la dicta. Estudia el vocabulario oficial de escritura — toca cualquier palabra para escucharla:",
   readVocab:"Vocabulario de lectura", writeVocab:"Vocabulario de escritura",
+  intTitle:"Preguntas de la entrevista",
+  intIntro:"En tu entrevista, el oficial hace estas preguntas personales de la <b>Parte 9 del Formulario N-400</b> (edición 01/20/25). La mayoría se responden «No» — las últimas, sobre el juramento, se responden «Sí». Responde siempre con la verdad.",
+  intSource:"Fuente: Formulario oficial N-400, Parte 9. El español es solo ayuda para estudiar.",
+  intMeaning:"Qué significa",
+  expNo:"Normalmente «No»", expYes:"Normalmente «Sí»", expVaries:"Depende de ti",
+  expVariesNote:"Responde con la verdad — depende de tu situación.",
+  fNo:"Normalmente No", fYes:"Normalmente Sí", fDep:"Depende",
+  intPracticeH:"Practica la entrevista", intPracticeD:"10 preguntas al azar · toca Sí o No, como las hace el oficial.",
+  intStart:"Empezar a practicar",
+  intQ:(a,b)=>`Pregunta ${a} de ${b}`,
+  intCorrect:"Correcto ✓", intWrong:"Casi ✗",
+  intVariesFb:"Esta depende de tu situación — en la entrevista real, responde con la verdad.",
+  intDone:"¡Práctica de entrevista completada!", intScore:(s)=>`${s} de 10 correctas`,
+  intAgain:"Practicar de nuevo", intNext:"Siguiente →",
   procTitle:"El camino a la ciudadanía", eligH:"Quién puede solicitar (vía de 5 años)",
   elig:["Tener 18 años o más al presentar la solicitud","Ser residente permanente legal (tener tarjeta verde) por al menos 5 años","Haber residido continuamente en EE. UU. durante 5 años antes de presentar","Haber estado físicamente presente en EE. UU. al menos 30 de los últimos 60 meses","Haber vivido al menos 3 meses en el estado o distrito de USCIS donde solicitas","Demostrar buena conducta moral durante los 5 años anteriores","Estar comprometido con los principios de la Constitución de EE. UU.","Poder leer, escribir y hablar inglés básico","Conocer la historia y el gobierno de EE. UU. (los exámenes de esta app)","Hacer el Juramento de Lealtad"],
   stepsH:"Los 8 pasos",
@@ -106,7 +134,7 @@ es:{
   resTitle:"Recursos oficiales",
   resIntro:"Confía siempre primero en uscis.gov. Estas son las páginas oficiales detrás de todo lo que hay en esta app:",
   res:[["Examen de Educación Cívica 2025 (oficial)","La página oficial del examen 2025 y el banco de 128 preguntas (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Revisar actualizaciones del examen","Respuestas que cambian (presidente, senadores, gobernador…). Revisa antes de tu entrevista.","https://www.uscis.gov/citizenship/testupdates"],["Estudia para el examen","Todos los materiales oficiales de estudio de USCIS en un lugar.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 pasos a la naturalización","El proceso oficial paso a paso.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Excepciones y adaptaciones","Excepciones por edad, discapacidad y otras, explicadas.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Recursos multilingües","Materiales oficiales de USCIS en español, árabe, chino, coreano, tagalo, vietnamita (para el examen 2008).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["Preguntas del examen 2008 (texto oficial)","El banco de 100 preguntas para solicitudes presentadas antes del 20 de oct. de 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Solicitud de tarifa reducida","Cómo solicitar la tarifa reducida de $380.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
-  disc:"<b>Solo ayuda de estudio — no es asesoría legal.</b> Las traducciones al español son para ayudarte a estudiar; los materiales oficiales del examen 2025 se publican solo en inglés. Algunas respuestas (presidente, senadores, gobernador…) cambian con el tiempo — revisa siempre <b>uscis.gov/citizenship/testupdates</b> antes de tu entrevista. Contenido de preguntas: USCIS M-1778 (09/25), verificado en septiembre de 2026."
+  disc:"<b>Solo ayuda de estudio — no es asesoría legal.</b> Las traducciones al español son para ayudarte a estudiar; los materiales oficiales del examen 2025 se publican solo en inglés. Algunas respuestas (presidente, senadores, gobernador…) cambian con el tiempo — revisa siempre <b>uscis.gov/citizenship/testupdates</b> antes de tu entrevista. Contenido de preguntas: USCIS M-1778 (09/25) y Formulario N-400 (01/20/25) Parte 9, verificado en septiembre de 2026."
 }};
 
 const VARIES_LINK = {
@@ -367,6 +395,83 @@ function renderEnglish(){
   </div>`;
 }
 
+/* ---------- interview ---------- */
+let intFilter = "all", ipz = null;
+function expTag(q){
+  const t = T();
+  if(q.expected==="no") return `<span class="tag exp-no">${esc(t.expNo)}</span>`;
+  if(q.expected==="yes") return `<span class="tag exp-yes">${esc(t.expYes)}</span>`;
+  return `<span class="tag exp-varies">⚠ ${esc(t.expVaries)}</span>`;
+}
+function nqCardHTML(q){
+  const t = T();
+  return `<div class="qcard nqcard" data-item="${esc(q.item)}">
+    <div class="qhead" data-act="toggle">
+      <div class="qnum">${esc(q.item)}</div>
+      <div style="flex:1"><div class="qtext">${esc(q[lang])}</div>
+      <div class="qmeta">${expTag(q)}</div></div>
+    </div>
+    <div class="qactions">
+      <button class="iconbtn" data-act="speak" aria-label="${esc(t.listen)}">🔊 ${esc(t.listen)}</button>
+    </div>
+    <div class="qbody">
+      <div class="alabel">${lang==="es"?"English":"Español"}</div>
+      <p>${esc(lang==="es"?q.en:q.es)}</p>
+      <div class="alabel">${esc(t.intMeaning)}</div>
+      <p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
+      ${q.expected==="varies"?`<div class="warnbox">${esc(t.expVariesNote)}</div>`:""}
+    </div>
+  </div>`;
+}
+function renderInterview(){
+  const t = T(), el = document.getElementById("v-interview");
+  const chips = [["all",t.all],["no",t.fNo],["yes",t.fYes],["varies",t.fDep]].map(([v,lb])=>
+    `<button class="chip${intFilter===v?" on":""}" data-if="${v}">${esc(lb)}</button>`).join("");
+  const list = N400.questions.filter(q=>intFilter==="all"||q.expected===intFilter);
+  el.innerHTML = `<div class="card"><h2>🎤 ${esc(t.intTitle)}</h2>
+    <p>${t.intIntro}</p><p class="note">${esc(t.intSource)}</p></div>
+    <div class="card"><h2>${esc(t.intPracticeH)}</h2><p class="note">${esc(t.intPracticeD)}</p>
+    <div class="center"><button class="btn coral" id="intStart">${esc(t.intStart)}</button></div></div>
+    <div class="chips">${chips}</div><div id="nqlist">${list.map(nqCardHTML).join("")}</div>`;
+  el.querySelector("#intStart").onclick = startInterviewPractice;
+}
+function startInterviewPractice(){
+  ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,10), idx:0, ok:0 };
+  renderInterviewQ();
+}
+function renderInterviewQ(){
+  const t = T(), el = document.getElementById("v-interview"), q = ipz.order[ipz.idx];
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
+    <div class="bigq">“${esc(q.en)}”</div>
+    <div class="center"><button class="iconbtn" id="intSpeak">🔊 ${esc(t.listen)}</button></div>
+    <div class="ynrow"><button class="btn big ghost" data-yn="y">${esc(t.intYes)}</button>
+    <button class="btn big ghost" data-yn="n">${esc(t.intNo)}</button></div></div>`;
+  el.querySelector("#intSpeak").onclick = ()=>speak(q.en);
+}
+function interviewAnswer(yes){
+  const t = T(), el = document.getElementById("v-interview"), q = ipz.order[ipz.idx];
+  const varies = q.expected==="varies";
+  const right = varies || (yes === (q.expected==="yes"));
+  if(right) ipz.ok++;
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
+    <div class="bigq">“${esc(q.en)}”</div>
+    <div class="${right?"fb-ok":"fb-bad"}">${right?"✓":"✗"} ${esc(right?t.intCorrect:t.intWrong)}</div>
+    ${varies?`<div class="warnbox">${esc(t.intVariesFb)}</div>`
+      :`<p><b>${esc(t.intMeaning)}:</b> ${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
+        <p class="note">${esc(lang==="es"?q.en:q.es)}</p>`}
+    <div class="center"><button class="btn coral" id="intNext">${esc(t.intNext)}</button></div></div>`;
+  el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
+}
+function renderInterviewDone(){
+  const t = T(), el = document.getElementById("v-interview");
+  el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8?"🎉":"💪"}</div>
+    <h2>${esc(t.intDone)}</h2><p style="color:var(--muted)">${esc(t.intScore(ipz.ok))}</p>
+    <button class="btn coral" id="intAgain">${esc(t.intAgain)}</button>
+    <div><button class="btn ghost" id="intBack">← ${esc(t.all)}</button></div></div>`;
+  el.querySelector("#intAgain").onclick = startInterviewPractice;
+  el.querySelector("#intBack").onclick = ()=>{ ipz=null; renderInterview(); };
+}
+
 /* ---------- process ---------- */
 function renderProcess(){
   const t = T(), el = document.getElementById("v-process");
@@ -390,7 +495,7 @@ function renderResources(){
 function show(v){ curView=v; renderChrome();
   document.querySelectorAll(".view").forEach(s=>s.classList.remove("on"));
   document.getElementById("v-"+v).classList.add("on");
-  ({study:renderStudy,practice:renderPractice,english:renderEnglish,process:renderProcess,resources:renderResources})[v]();
+  ({study:renderStudy,practice:renderPractice,interview:renderInterview,english:renderEnglish,process:renderProcess,resources:renderResources})[v]();
   window.scrollTo({top:0});
 }
 document.addEventListener("click", e=>{
@@ -403,6 +508,19 @@ document.addEventListener("click", e=>{
   const p = e.target.closest("[data-p]"); if(p){ startPractice(p.dataset.p); return; }
   const r = e.target.closest("[data-r]"); if(r){ practiceAnswer(r.dataset.r==="y"); return; }
   const w = e.target.closest("[data-w]"); if(w){ speak(w.dataset.w); return; }
+  const ncard = e.target.closest(".nqcard");
+  if(ncard){
+    const actBtn = e.target.closest("[data-act]");
+    if(actBtn){
+      const q = N400.questions.find(x=>x.item===ncard.dataset.item);
+      const act = actBtn.dataset.act;
+      if(act==="toggle"){ ncard.classList.toggle("open"); }
+      else if(act==="speak"){ e.stopPropagation(); speak(q.en); }
+      return;
+    }
+  }
+  const iff = e.target.closest("[data-if]"); if(iff){ intFilter=iff.dataset.if; renderInterview(); return; }
+  const yn = e.target.closest("[data-yn]"); if(yn && ipz){ interviewAnswer(yn.dataset.yn==="y"); return; }
   const card = e.target.closest(".qcard");
   if(card){
     const actBtn = e.target.closest("[data-act]");
