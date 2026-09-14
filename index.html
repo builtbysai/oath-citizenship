@@ -138,6 +138,9 @@ ol.steps li b{display:block; color:var(--navy); margin-bottom:2px;}
 table.fees{width:100%; border-collapse:collapse; margin:8px 0; font-size:15px;}
 table.fees td, table.fees th{border:1px solid var(--line); padding:10px; text-align:left;}
 table.fees th{background:#f3ecda; color:var(--navy);}
+.cdnum{font-size:34px; font-weight:800; margin:6px 0;}
+.cdrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;}
+.cdinput{font:inherit; padding:10px 12px; border:1px solid #d8cdb8; border-radius:12px; background:#fff;}
 .packlist{display:flex; flex-direction:column; gap:6px; margin:0 0 14px;}
 .packrow{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5ddcf; border-radius:12px; cursor:pointer; font-size:15px;}
 .packrow.done{background:#f0f7ee; border-color:#9cc184;}
@@ -248,6 +251,13 @@ en:{
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
   dictDone:"Dictation complete!", dictScore:(s,n)=>`${s} of ${n} correct`,
+  cdH:"Interview countdown",
+  cdD:"Set your interview date and we\u2019ll count down with a study pace for the days left.",
+  cdSet:"Set date", cdChange:"Change", cdClear:"Clear",
+  cdDays:n=>n===1?"1 day left":n+" days left",
+  cdToday:"Today\u2019s the day \u2014 good luck! \ud83c\udf40",
+  cdPast:"How did it go? Clear the date to start fresh.",
+  cdPace:n=>n>30?"Steady pace: one practice round a day keeps you sharp.":n>7?"Build momentum: one full practice plus mistake review every day.":"Final stretch: one mock interview every day this week.",
   mockH:"Full mock interview", mockD:"Simulate the real appointment, start to finish: reading, dictation, civics, then interview questions.",
   mockStart:"Start mock interview", mockPhase:(n)=>`🎭 Mock interview · part ${n} of 4`,
   mockRead:"Reading", mockDict:"Dictation", mockCiv:"Civics", mockN400:"Interview questions",
@@ -341,6 +351,13 @@ es:{
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
   dictDone:"¡Dictado completado!", dictScore:(s,n)=>`${s} de ${n} correctas`,
+  cdH:"Cuenta regresiva",
+  cdD:"Pon la fecha de tu entrevista y contaremos los d\u00edas con un ritmo de estudio.",
+  cdSet:"Fijar fecha", cdChange:"Cambiar", cdClear:"Borrar",
+  cdDays:n=>n===1?"Falta 1 d\u00eda":"Faltan "+n+" d\u00edas",
+  cdToday:"\u00a1Hoy es el d\u00eda \u2014 buena suerte! \ud83c\udf40",
+  cdPast:"\u00bfC\u00f3mo te fue? Borra la fecha para empezar de nuevo.",
+  cdPace:n=>n>30?"Ritmo constante: una ronda de pr\u00e1ctica al d\u00eda te mantiene afilado.":n>7?"Toma impulso: una pr\u00e1ctica completa m\u00e1s repaso de errores cada d\u00eda.":"Recta final: un simulacro cada d\u00eda esta semana.",
   mockH:"Simulacro completo de entrevista", mockD:"Simula la cita real de principio a fin: lectura, dictado, cívica y preguntas de entrevista.",
   mockStart:"Empezar simulacro", mockPhase:(n)=>`🎭 Simulacro · parte ${n} de 4`,
   mockRead:"Lectura", mockDict:"Dictado", mockCiv:"Cívica", mockN400:"Preguntas de entrevista",
@@ -500,7 +517,7 @@ function renderStudy(){
   const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
   const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  el.innerHTML = filingCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
+  el.innerHTML = filingCard() + countdownCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
     <p>${esc(t.mockD)}</p>
     <div class="center"><button class="btn gold big" id="mockStart">${esc(t.mockStart)}</button></div></div>
     <div class="card"><h2>${esc(t.studyTitle)}</h2>
@@ -513,6 +530,40 @@ function renderStudy(){
   const si = el.querySelector("#qsearch");
   si.addEventListener("input", ()=>{ studyQ = si.value; renderQList(); });
   el.querySelector("#mockStart").onclick = startMock;
+  wireCountdown();
+}
+
+/* ---------- interview countdown ---------- */
+function getIDate(){ return localStorage.getItem("oath_idate") || ""; }
+function daysLeft(){
+  const v = getIDate(); if(!v) return null;
+  const p = v.split("-"); if(p.length!==3) return null;
+  const d = new Date(+p[0], +p[1]-1, +p[2]);
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((d - now) / 86400000);
+}
+function countdownCard(){
+  const t = T(), v = getIDate(), n = daysLeft();
+  let body;
+  if(v === "" || n === null){
+    body = `<p>${esc(t.cdD)}</p><div class="cdrow"><input type="date" id="cdDate" class="cdinput"><button class="btn coral" id="cdSet">${esc(t.cdSet)}</button></div>`;
+  } else if(n < 0){
+    body = `<p>${esc(t.cdPast)}</p><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button>`;
+  } else if(n === 0){
+    body = `<div class="cdnum">${esc(t.cdToday)}</div><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button>`;
+  } else {
+    body = `<div class="cdnum">${esc(t.cdDays(n))}</div><p>${esc(t.cdPace(n))}</p>
+      <div class="cdrow"><input type="date" id="cdDate" class="cdinput" value="${esc(v)}"><button class="btn ghost" id="cdSet">${esc(t.cdChange)}</button><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button></div>`;
+  }
+  return `<div class="card"><h2>📅 ${esc(t.cdH)}</h2>${body}</div>`;
+}
+function wireCountdown(){
+  const setBtn = document.getElementById("cdSet"), clrBtn = document.getElementById("cdClear");
+  if(setBtn) setBtn.onclick = ()=>{
+    const v = document.getElementById("cdDate").value;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ localStorage.setItem("oath_idate", v); renderStudy(); }
+  };
+  if(clrBtn) clrBtn.onclick = ()=>{ localStorage.removeItem("oath_idate"); renderStudy(); };
 }
 function renderQList(){
   const ql = document.getElementById("qlist");

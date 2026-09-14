@@ -108,6 +108,11 @@ nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(-
 .btn{display:inline-block; border:0; border-radius:12px; padding:13px 22px; font-size:16px; font-weight:700;
   cursor:pointer; background:var(--navy); color:#fff; margin:6px 6px 6px 0;}
 .btn.gold{background:var(--gold); color:#12233a;}
+.mockbanner{text-align:center;font-weight:800;background:var(--gold-soft);border:2px solid var(--gold);border-radius:12px;padding:8px 10px;margin-bottom:12px;color:#5b4413;}
+.mockrows{max-width:340px;margin:14px auto;text-align:left;}
+.mockrow{display:flex;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px dashed var(--line);}
+.mockrow.ok{color:#1d6b2a;} .mockrow.bad{color:#a33327;}
+.mockrow span:first-child{font-size:20px;} .mockrow b{margin-left:auto;}
 .btn.ghost{background:#fff; color:var(--navy); border:2px solid var(--line);}
 .btn:active{transform:scale(.97);}
 .btn.big{width:100%; font-size:17px; padding:15px;}
@@ -133,6 +138,14 @@ ol.steps li b{display:block; color:var(--navy); margin-bottom:2px;}
 table.fees{width:100%; border-collapse:collapse; margin:8px 0; font-size:15px;}
 table.fees td, table.fees th{border:1px solid var(--line); padding:10px; text-align:left;}
 table.fees th{background:#f3ecda; color:var(--navy);}
+.cdnum{font-size:34px; font-weight:800; margin:6px 0;}
+.cdrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;}
+.cdinput{font:inherit; padding:10px 12px; border:1px solid #d8cdb8; border-radius:12px; background:#fff;}
+.packlist{display:flex; flex-direction:column; gap:6px; margin:0 0 14px;}
+.packrow{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5ddcf; border-radius:12px; cursor:pointer; font-size:15px;}
+.packrow.done{background:#f0f7ee; border-color:#9cc184;}
+.packrow.done span{text-decoration:line-through; color:#6b7f63;}
+.packchk{width:20px; height:20px; margin:1px 0 0; accent-color:#2e7d32; flex:0 0 auto;}
 .exgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 @media(max-width:560px){.exgrid{grid-template-columns:1fr;}}
 .excard{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px;}

@@ -48,6 +48,19 @@ en:{
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
   dictDone:"Dictation complete!", dictScore:(s,n)=>`${s} of ${n} correct`,
+  cdH:"Interview countdown",
+  cdD:"Set your interview date and we\u2019ll count down with a study pace for the days left.",
+  cdSet:"Set date", cdChange:"Change", cdClear:"Clear",
+  cdDays:n=>n===1?"1 day left":n+" days left",
+  cdToday:"Today\u2019s the day \u2014 good luck! \ud83c\udf40",
+  cdPast:"How did it go? Clear the date to start fresh.",
+  cdPace:n=>n>30?"Steady pace: one practice round a day keeps you sharp.":n>7?"Build momentum: one full practice plus mistake review every day.":"Final stretch: one mock interview every day this week.",
+  mockH:"Full mock interview", mockD:"Simulate the real appointment, start to finish: reading, dictation, civics, then interview questions.",
+  mockStart:"Start mock interview", mockPhase:(n)=>`🎭 Mock interview · part ${n} of 4`,
+  mockRead:"Reading", mockDict:"Dictation", mockCiv:"Civics", mockN400:"Interview questions",
+  mockSumH:"Mock interview results",
+  mockPassAll:"You passed every scored part — you're ready! 🎉",
+  mockFailSome:"Keep practicing the parts marked ✗, then run it again.",
   readH:"Reading practice",
   readD:"Like the real test: read <b>1 of 3</b> sentences aloud so the officer can understand every word. Read each sentence out loud, then tap honestly.",
   readStart:"Start reading practice", readAloud:"🔊 Hear it first",
@@ -77,6 +90,11 @@ en:{
   feesNote:"Fees change over time. Always verify the current fee at uscis.gov before you file.",
   excH:"Exceptions",
   excs:[["50/20","Age 50+ with 20+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["55/15","Age 55+ with 15+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["65/20","Age 65+ with 20+ years as a permanent resident: simpler civics test — 10 questions from a special set of 20, 6 correct to pass. May use your language."],["N-648 disability","A licensed doctor can certify a medical condition (12+ months) that prevents the English or civics test. You may then be exempt."]],
+  packH:"What to bring to your interview", packIntro:"USCIS says the Form N-400 instructions list the original documents to bring, depending on your case. Check off what applies to you \u2014 your list is saved on this device.",
+  packItems:["Appointment notice (Form I-797C)","Green Card (permanent resident card)","Passport(s) \u2014 current and expired","State driver\u2019s license or ID","Tax returns (last 3\u20135 years)","Marriage certificate (if married)","Divorce or death certificates (if previously married)","Children\u2019s birth certificates (if applicable)","Court / arrest records (if applicable)","Name-change documents (if applicable)"],
+  packReset:"Reset checklist",
+  dayH:"On the day",
+  dayTips:["Arrive 15\u201330 minutes early \u2014 you\u2019ll go through security screening.","You\u2019ll be under oath: answer truthfully.","The officer reviews your N-400 first, then gives the English and civics tests.","If a document is missing, you usually get 30\u201390 days to send it \u2014 you won\u2019t have to start over."],
   resTitle:"Official resources",
   resIntro:"Always trust uscis.gov first. These are the official pages behind everything in this app:",
   res:[["2025 Civics Test (official)","The official 2025 test page and the 128-question study bank (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Check for Test Updates","Answers that change (president, senators, governor…). Check before your interview.","https://www.uscis.gov/citizenship/testupdates"],["Study for the Test","All official USCIS study materials in one place.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 Steps to Naturalization","The official step-by-step process.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Exceptions & Accommodations","Age, disability, and other exceptions explained.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Multilingual Resources","Official USCIS materials in Spanish, Arabic, Chinese, Korean, Tagalog, Vietnamese (for the 2008 test).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["2008 Test Questions (official text)","The 100-question bank for applications filed before Oct 20, 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Reduced Fee Request","How to request the $380 reduced filing fee.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
@@ -130,6 +148,19 @@ es:{
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
   dictDone:"¡Dictado completado!", dictScore:(s,n)=>`${s} de ${n} correctas`,
+  cdH:"Cuenta regresiva",
+  cdD:"Pon la fecha de tu entrevista y contaremos los d\u00edas con un ritmo de estudio.",
+  cdSet:"Fijar fecha", cdChange:"Cambiar", cdClear:"Borrar",
+  cdDays:n=>n===1?"Falta 1 d\u00eda":"Faltan "+n+" d\u00edas",
+  cdToday:"\u00a1Hoy es el d\u00eda \u2014 buena suerte! \ud83c\udf40",
+  cdPast:"\u00bfC\u00f3mo te fue? Borra la fecha para empezar de nuevo.",
+  cdPace:n=>n>30?"Ritmo constante: una ronda de pr\u00e1ctica al d\u00eda te mantiene afilado.":n>7?"Toma impulso: una pr\u00e1ctica completa m\u00e1s repaso de errores cada d\u00eda.":"Recta final: un simulacro cada d\u00eda esta semana.",
+  mockH:"Simulacro completo de entrevista", mockD:"Simula la cita real de principio a fin: lectura, dictado, cívica y preguntas de entrevista.",
+  mockStart:"Empezar simulacro", mockPhase:(n)=>`🎭 Simulacro · parte ${n} de 4`,
+  mockRead:"Lectura", mockDict:"Dictado", mockCiv:"Cívica", mockN400:"Preguntas de entrevista",
+  mockSumH:"Resultados del simulacro",
+  mockPassAll:"¡Aprobaste todas las partes puntuadas — estás listo/a! 🎉",
+  mockFailSome:"Sigue practicando las partes marcadas ✗ y repite el simulacro.",
   readH:"Práctica de lectura",
   readD:"Como en el examen real: lee <b>1 de 3</b> oraciones en voz alta para que el oficial entienda cada palabra. Lee cada oración en voz alta y luego toca con honestidad.",
   readStart:"Empezar la práctica de lectura", readAloud:"🔊 Escucharla primero",
@@ -159,6 +190,11 @@ es:{
   feesNote:"Las tarifas cambian con el tiempo. Verifica siempre la tarifa actual en uscis.gov antes de presentar.",
   excH:"Excepciones",
   excs:[["50/20","50 años o más con 20+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["55/15","55 años o más con 15+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["65/20","65 años o más con 20+ años como residente permanente: examen más simple — 10 preguntas de un grupo especial de 20, 6 correctas para aprobar. Puedes usar tu idioma."],["N-648 discapacidad","Un médico licenciado puede certificar una condición médica (12+ meses) que impide los exámenes de inglés o educación cívica. Puedes quedar exento."]],
+  packH:"Qu\u00e9 llevar a tu entrevista", packIntro:"USCIS dice que las instrucciones del Formulario N-400 indican los documentos originales que debes llevar, seg\u00fan tu caso. Marca los que apliquen a ti \u2014 tu lista se guarda en este dispositivo.",
+  packItems:["Aviso de cita (Formulario I-797C)","Tarjeta verde (tarjeta de residente permanente)","Pasaporte(s) \u2014 vigente(s) y vencido(s)","Licencia de conducir o identificaci\u00f3n estatal","Declaraciones de impuestos (\u00faltimos 3 a 5 a\u00f1os)","Certificado de matrimonio (si est\u00e1s casado/a)","Certificados de divorcio o defunci\u00f3n (si hubo matrimonios anteriores)","Certificados de nacimiento de tus hijos (si aplica)","Documentos judiciales / de arrestos (si aplica)","Documentos de cambio de nombre (si aplica)"],
+  packReset:"Reiniciar lista",
+  dayH:"El d\u00eda de la cita",
+  dayTips:["Llega 15\u201330 minutos antes \u2014 pasar\u00e1s por un control de seguridad.","Estar\u00e1s bajo juramento: responde con la verdad.","El oficial revisa tu N-400 primero, luego te hace los ex\u00e1menes de ingl\u00e9s y educaci\u00f3n c\u00edvica.","Si falta un documento, normalmente te dan 30\u201390 d\u00edas para enviarlo \u2014 no tendr\u00e1s que empezar de nuevo."],
   resTitle:"Recursos oficiales",
   resIntro:"Confía siempre primero en uscis.gov. Estas son las páginas oficiales detrás de todo lo que hay en esta app:",
   res:[["Examen de Educación Cívica 2025 (oficial)","La página oficial del examen 2025 y el banco de 128 preguntas (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Revisar actualizaciones del examen","Respuestas que cambian (presidente, senadores, gobernador…). Revisa antes de tu entrevista.","https://www.uscis.gov/citizenship/testupdates"],["Estudia para el examen","Todos los materiales oficiales de estudio de USCIS en un lugar.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 pasos a la naturalización","El proceso oficial paso a paso.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Excepciones y adaptaciones","Excepciones por edad, discapacidad y otras, explicadas.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Recursos multilingües","Materiales oficiales de USCIS en español, árabe, chino, coreano, tagalo, vietnamita (para el examen 2008).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["Preguntas del examen 2008 (texto oficial)","El banco de 100 preguntas para solicitudes presentadas antes del 20 de oct. de 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Solicitud de tarifa reducida","Cómo solicitar la tarifa reducida de $380.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
@@ -278,7 +314,10 @@ function renderStudy(){
   const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
   const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  el.innerHTML = filingCard() + `<div class="card"><h2>${esc(t.studyTitle)}</h2>
+  el.innerHTML = filingCard() + countdownCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
+    <p>${esc(t.mockD)}</p>
+    <div class="center"><button class="btn gold big" id="mockStart">${esc(t.mockStart)}</button></div></div>
+    <div class="card"><h2>${esc(t.studyTitle)}</h2>
     <div class="note">${esc(t.tapReveal)}</div>
     <div class="progress" aria-hidden="true"><div style="width:${(knownN/Q().length*100).toFixed(1)}%"></div></div>
     <div class="note">${esc(t.knownCount(knownN, Q().length))}</div></div>
@@ -287,6 +326,41 @@ function renderStudy(){
   renderQList();
   const si = el.querySelector("#qsearch");
   si.addEventListener("input", ()=>{ studyQ = si.value; renderQList(); });
+  el.querySelector("#mockStart").onclick = startMock;
+  wireCountdown();
+}
+
+/* ---------- interview countdown ---------- */
+function getIDate(){ return localStorage.getItem("oath_idate") || ""; }
+function daysLeft(){
+  const v = getIDate(); if(!v) return null;
+  const p = v.split("-"); if(p.length!==3) return null;
+  const d = new Date(+p[0], +p[1]-1, +p[2]);
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((d - now) / 86400000);
+}
+function countdownCard(){
+  const t = T(), v = getIDate(), n = daysLeft();
+  let body;
+  if(v === "" || n === null){
+    body = `<p>${esc(t.cdD)}</p><div class="cdrow"><input type="date" id="cdDate" class="cdinput"><button class="btn coral" id="cdSet">${esc(t.cdSet)}</button></div>`;
+  } else if(n < 0){
+    body = `<p>${esc(t.cdPast)}</p><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button>`;
+  } else if(n === 0){
+    body = `<div class="cdnum">${esc(t.cdToday)}</div><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button>`;
+  } else {
+    body = `<div class="cdnum">${esc(t.cdDays(n))}</div><p>${esc(t.cdPace(n))}</p>
+      <div class="cdrow"><input type="date" id="cdDate" class="cdinput" value="${esc(v)}"><button class="btn ghost" id="cdSet">${esc(t.cdChange)}</button><button class="btn ghost" id="cdClear">${esc(t.cdClear)}</button></div>`;
+  }
+  return `<div class="card"><h2>📅 ${esc(t.cdH)}</h2>${body}</div>`;
+}
+function wireCountdown(){
+  const setBtn = document.getElementById("cdSet"), clrBtn = document.getElementById("cdClear");
+  if(setBtn) setBtn.onclick = ()=>{
+    const v = document.getElementById("cdDate").value;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ localStorage.setItem("oath_idate", v); renderStudy(); }
+  };
+  if(clrBtn) clrBtn.onclick = ()=>{ localStorage.removeItem("oath_idate"); renderStudy(); };
 }
 function renderQList(){
   const ql = document.getElementById("qlist");
@@ -343,7 +417,7 @@ function renderPractice(){
   }
   if(pz.done){ renderPracticeDone(el); return; }
   const q = pz.order[pz.idx], t2 = T();
-  el.innerHTML = `<div class="card">
+  el.innerHTML = `<div class="card">${pz.mock?mockBanner(3):""}
     <div style="display:flex;justify-content:space-between;align-items:center">
       <b>${esc(t2.qNum(pz.idx+1))}</b>
       <span class="note">${esc(t2.correctToPass(pz.need))} · <span style="color:${pz.wrong>0?"var(--red)":"inherit"}">${esc(t2.wrongs(pz.wrong))}</span></span>
@@ -363,7 +437,7 @@ function renderPractice(){
   box.querySelector("#showA").onclick = showAns;
   el.querySelector('[data-act="speak"]').onclick = ()=>speak(q.q[lang]);
 }
-function startPractice(mode){
+function startPractice(mode, isMock){
   const review = mode==="review", senior = mode==="senior", before = filed==="before";
   let pool;
   if(review) pool = Q().filter(q=>mistakes.has(qkey(q.n)));
@@ -372,7 +446,7 @@ function startPractice(mode){
   const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
   const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
   const maxWrong = review ? total+1 : (senior?5:(before?5:9));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false, mock:!!isMock};
   renderPractice();
 }
 function practiceAnswer(ok){
@@ -396,6 +470,7 @@ function renderPracticeDone(el){
     saveHistory();
     pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
   }
+  if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; startMockN400(); return; }
   const headMsg = pz.review
     ? (mistakes.size===0 ? t.clearedAll : t.stillLeft(mistakes.size))
     : (pass ? t.passMsg : t.failMsg);
@@ -443,7 +518,7 @@ function startReadPractice(){
 }
 function renderReadQ(){
   const t = T(), el = document.getElementById("v-english"), s = rp.order[rp.idx];
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.readQ(rp.idx+1, 3))}</div>
+  el.innerHTML = `<div class="card">${rp.mock?mockBanner(1):""}<div class="note">${esc(t.readQ(rp.idx+1, 3))}</div>
     <div class="bigq">“${esc(s)}”</div>
     <div class="center"><button class="iconbtn" id="rpHear">${esc(t.readAloud)}</button></div>
     <p class="note">${esc(t.readHonest)}</p>
@@ -455,6 +530,7 @@ function renderReadQ(){
 }
 function rpNext(){ rp.idx++; rp.idx>=3?renderReadDone():renderReadQ(); }
 function renderReadDone(){
+  if(rp.mock){ mock.read = rp.ok; startMockDict(); return; }
   const t = T(), el = document.getElementById("v-english"), pass = rp.ok>=1;
   el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
     <h2>${esc(t.readDone)}</h2><p style="color:var(--muted)">${esc(t.readScore(rp.ok))}</p>
@@ -463,6 +539,44 @@ function renderReadDone(){
     <div><button class="btn ghost" id="rpBack">← ${esc(t.writingTitle)}</button></div></div>`;
   el.querySelector("#rpAgain").onclick = startReadPractice;
   el.querySelector("#rpBack").onclick = ()=>{ rp=null; renderEnglish(); };
+}
+/* ---------- mock interview ---------- */
+let mock = null;
+const mockBanner = n => `<div class="mockbanner">${esc(T().mockPhase(n))}</div>`;
+function startMock(){
+  mock = {};
+  show("english");
+  rp = { order:[...READ_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, mock:true };
+  renderReadQ();
+}
+function startMockDict(){
+  dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, mock:true };
+  renderDictQ();
+}
+function startMockCivics(){ show("practice"); startPractice("std", true); }
+function startMockN400(){
+  show("interview");
+  ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,8), idx:0, ok:0, mock:true };
+  renderInterviewQ();
+}
+function renderMockSummary(){
+  const t = T(), el = document.getElementById("v-interview");
+  const rows = [
+    [t.mockRead, mock.read, 3, mock.read>=1],
+    [t.mockDict, mock.dict, 3, mock.dict>=1],
+    [t.mockCiv, mock.civics.right, mock.civics.total, mock.civics.pass],
+  ];
+  const allPass = rows.every(r=>r[3]);
+  el.innerHTML = `<div class="card starscreen"><div class="big">${allPass?"🎉":"💪"}</div>
+    <h2>${esc(t.mockSumH)}</h2>
+    <div class="mockrows">${rows.map(r=>`<div class="mockrow ${r[3]?"ok":"bad"}"><span>${r[3]?"✓":"✗"}</span><span>${esc(r[0])}</span><b>${r[1]}/${r[2]}</b></div>`).join("")}
+    <div class="mockrow"><span>📝</span><span>${esc(t.mockN400)}</span><b>${mock.n400}/8</b></div></div>
+    <p class="${allPass?"fb-ok":"fb-bad"}">${esc(allPass?t.mockPassAll:t.mockFailSome)}</p>
+    <button class="btn coral" id="mockAgain">${esc(t.mockStart)}</button>
+    <div><button class="btn ghost" id="mockBack">← ${esc(t.all)}</button></div></div>`;
+  el.querySelector("#mockAgain").onclick = startMock;
+  el.querySelector("#mockBack").onclick = ()=>{ mock=null; renderInterview(); };
+  window.scrollTo({top:0});
 }
 /* ---------- dictation ---------- */
 let dz = null;
@@ -482,7 +596,7 @@ function startDzReview(){
 function renderDictQ(){
   const t = T(), el = document.getElementById("v-english"), s = dz.order[dz.idx];
   const n = dz.order.length;
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
+  el.innerHTML = `<div class="card">${dz.mock?mockBanner(2):""}<div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
     <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
     <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
@@ -506,6 +620,7 @@ function checkDictation(){
   el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
 function renderDictDone(){
+  if(dz.mock){ mock.dict = dz.ok; startMockCivics(); return; }
   const t = T(), el = document.getElementById("v-english");
   const pass = dz.review ? dzMistakes.size===0 : dz.ok>=1;
   const reviewMsg = dz.review ? (dzMistakes.size===0 ? t.clearedAll : t.stillLeft(dzMistakes.size)) : null;
@@ -574,7 +689,7 @@ function startInterviewReview(){
 }
 function renderInterviewQ(){
   const t = T(), el = document.getElementById("v-interview"), q = ipz.order[ipz.idx];
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
+  el.innerHTML = `<div class="card">${ipz.mock?mockBanner(4):""}<div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
     <div class="bigq">“${esc(q.en)}”</div>
     <div class="center"><button class="iconbtn" id="intSpeak">🔊 ${esc(t.listen)}</button></div>
     <div class="ynrow"><button class="btn big ghost" data-yn="y">${esc(t.intYes)}</button>
@@ -598,6 +713,7 @@ function interviewAnswer(yes){
   el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
 }
 function renderInterviewDone(){
+  if(ipz.mock){ mock.n400 = ipz.ok; renderMockSummary(); return; }
   const t = T(), el = document.getElementById("v-interview");
   const reviewMsg = ipz.review ? (intMistakes.size===0 ? t.clearedAll : t.stillLeft(intMistakes.size)) : null;
   el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8||ipz.review?"🎉":"💪"}</div>
@@ -612,15 +728,30 @@ function renderInterviewDone(){
 
 /* ---------- process ---------- */
 function renderProcess(){
-  const t = T(), el = document.getElementById("v-process");
+  const t = T(), el = document.getElementById("v-process"), pack = getPack();
   el.innerHTML = `<div class="card"><h2>${esc(t.procTitle)}</h2>
     <h3>${esc(t.eligH)}</h3><ul>${t.elig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
   <div class="card"><h2>${esc(t.stepsH)}</h2><ol class="steps">${t.steps.map(s=>`<li><b>${esc(s[0])}</b>${esc(s[1])}</li>`).join("")}</ol></div>
   <div class="card"><h2>${esc(t.feesH)}</h2>
     <table class="fees">${t.feeRows.map(r=>`<tr><td>${esc(r[0])}</td><td><b>${esc(r[1])}</b></td></tr>`).join("")}</table>
     <p class="note">⚠ ${esc(t.feesNote)}</p></div>
-  <div class="card"><h2>${esc(t.excH)}</h2><div class="exgrid">${t.excs.map(e=>`<div class="excard"><b>${esc(e[0])}</b><p>${esc(e[1])}</p></div>`).join("")}</div></div>`;
+  <div class="card"><h2>${esc(t.excH)}</h2><div class="exgrid">${t.excs.map(e=>`<div class="excard"><b>${esc(e[0])}</b><p>${esc(e[1])}</p></div>`).join("")}</div></div>
+  <div class="card"><h2>\u{1F9F3} ${esc(t.packH)}</h2><p class="note">${esc(t.packIntro)}</p>
+    <div class="packlist">${t.packItems.map((x,i)=>`<label class="packrow${pack.includes(i)?" done":""}"><input type="checkbox" class="packchk" data-i="${i}"${pack.includes(i)?" checked":""}><span>${esc(x)}</span></label>`).join("")}</div>
+    <button class="btn ghost" id="packReset">${esc(t.packReset)}</button></div>
+  <div class="card"><h2>\u{1F4C5} ${esc(t.dayH)}</h2><ul>${t.dayTips.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;
+  el.querySelectorAll(".packchk").forEach(c=>c.onchange=()=>{
+    const i=+c.dataset.i, p=getPack();
+    if(c.checked && !p.includes(i)) p.push(i);
+    if(!c.checked) p.splice(p.indexOf(i),1);
+    localStorage.setItem("oath_pack",JSON.stringify(p));
+    c.closest(".packrow").classList.toggle("done",c.checked);
+  });
+  document.getElementById("packReset").onclick=()=>{ localStorage.removeItem("oath_pack"); renderProcess(); };
 }
+
+/* ---------- interview-day packing list ---------- */
+function getPack(){ try{ return JSON.parse(localStorage.getItem("oath_pack")||"[]"); }catch(e){ return []; } }
 
 /* ---------- resources ---------- */
 function renderResources(){
