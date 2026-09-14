@@ -138,6 +138,11 @@ ol.steps li b{display:block; color:var(--navy); margin-bottom:2px;}
 table.fees{width:100%; border-collapse:collapse; margin:8px 0; font-size:15px;}
 table.fees td, table.fees th{border:1px solid var(--line); padding:10px; text-align:left;}
 table.fees th{background:#f3ecda; color:var(--navy);}
+.packlist{display:flex; flex-direction:column; gap:6px; margin:0 0 14px;}
+.packrow{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid #e5ddcf; border-radius:12px; cursor:pointer; font-size:15px;}
+.packrow.done{background:#f0f7ee; border-color:#9cc184;}
+.packrow.done span{text-decoration:line-through; color:#6b7f63;}
+.packchk{width:20px; height:20px; margin:1px 0 0; accent-color:#2e7d32; flex:0 0 auto;}
 .exgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 @media(max-width:560px){.exgrid{grid-template-columns:1fr;}}
 .excard{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px;}
@@ -278,6 +283,11 @@ en:{
   feesNote:"Fees change over time. Always verify the current fee at uscis.gov before you file.",
   excH:"Exceptions",
   excs:[["50/20","Age 50+ with 20+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["55/15","Age 55+ with 15+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["65/20","Age 65+ with 20+ years as a permanent resident: simpler civics test — 10 questions from a special set of 20, 6 correct to pass. May use your language."],["N-648 disability","A licensed doctor can certify a medical condition (12+ months) that prevents the English or civics test. You may then be exempt."]],
+  packH:"What to bring to your interview", packIntro:"USCIS says the Form N-400 instructions list the original documents to bring, depending on your case. Check off what applies to you \u2014 your list is saved on this device.",
+  packItems:["Appointment notice (Form I-797C)","Green Card (permanent resident card)","Passport(s) \u2014 current and expired","State driver\u2019s license or ID","Tax returns (last 3\u20135 years)","Marriage certificate (if married)","Divorce or death certificates (if previously married)","Children\u2019s birth certificates (if applicable)","Court / arrest records (if applicable)","Name-change documents (if applicable)"],
+  packReset:"Reset checklist",
+  dayH:"On the day",
+  dayTips:["Arrive 15\u201330 minutes early \u2014 you\u2019ll go through security screening.","You\u2019ll be under oath: answer truthfully.","The officer reviews your N-400 first, then gives the English and civics tests.","If a document is missing, you usually get 30\u201390 days to send it \u2014 you won\u2019t have to start over."],
   resTitle:"Official resources",
   resIntro:"Always trust uscis.gov first. These are the official pages behind everything in this app:",
   res:[["2025 Civics Test (official)","The official 2025 test page and the 128-question study bank (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Check for Test Updates","Answers that change (president, senators, governor…). Check before your interview.","https://www.uscis.gov/citizenship/testupdates"],["Study for the Test","All official USCIS study materials in one place.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 Steps to Naturalization","The official step-by-step process.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Exceptions & Accommodations","Age, disability, and other exceptions explained.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Multilingual Resources","Official USCIS materials in Spanish, Arabic, Chinese, Korean, Tagalog, Vietnamese (for the 2008 test).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["2008 Test Questions (official text)","The 100-question bank for applications filed before Oct 20, 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Reduced Fee Request","How to request the $380 reduced filing fee.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
@@ -366,6 +376,11 @@ es:{
   feesNote:"Las tarifas cambian con el tiempo. Verifica siempre la tarifa actual en uscis.gov antes de presentar.",
   excH:"Excepciones",
   excs:[["50/20","50 años o más con 20+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["55/15","55 años o más con 15+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["65/20","65 años o más con 20+ años como residente permanente: examen más simple — 10 preguntas de un grupo especial de 20, 6 correctas para aprobar. Puedes usar tu idioma."],["N-648 discapacidad","Un médico licenciado puede certificar una condición médica (12+ meses) que impide los exámenes de inglés o educación cívica. Puedes quedar exento."]],
+  packH:"Qu\u00e9 llevar a tu entrevista", packIntro:"USCIS dice que las instrucciones del Formulario N-400 indican los documentos originales que debes llevar, seg\u00fan tu caso. Marca los que apliquen a ti \u2014 tu lista se guarda en este dispositivo.",
+  packItems:["Aviso de cita (Formulario I-797C)","Tarjeta verde (tarjeta de residente permanente)","Pasaporte(s) \u2014 vigente(s) y vencido(s)","Licencia de conducir o identificaci\u00f3n estatal","Declaraciones de impuestos (\u00faltimos 3 a 5 a\u00f1os)","Certificado de matrimonio (si est\u00e1s casado/a)","Certificados de divorcio o defunci\u00f3n (si hubo matrimonios anteriores)","Certificados de nacimiento de tus hijos (si aplica)","Documentos judiciales / de arrestos (si aplica)","Documentos de cambio de nombre (si aplica)"],
+  packReset:"Reiniciar lista",
+  dayH:"El d\u00eda de la cita",
+  dayTips:["Llega 15\u201330 minutos antes \u2014 pasar\u00e1s por un control de seguridad.","Estar\u00e1s bajo juramento: responde con la verdad.","El oficial revisa tu N-400 primero, luego te hace los ex\u00e1menes de ingl\u00e9s y educaci\u00f3n c\u00edvica.","Si falta un documento, normalmente te dan 30\u201390 d\u00edas para enviarlo \u2014 no tendr\u00e1s que empezar de nuevo."],
   resTitle:"Recursos oficiales",
   resIntro:"Confía siempre primero en uscis.gov. Estas son las páginas oficiales detrás de todo lo que hay en esta app:",
   res:[["Examen de Educación Cívica 2025 (oficial)","La página oficial del examen 2025 y el banco de 128 preguntas (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Revisar actualizaciones del examen","Respuestas que cambian (presidente, senadores, gobernador…). Revisa antes de tu entrevista.","https://www.uscis.gov/citizenship/testupdates"],["Estudia para el examen","Todos los materiales oficiales de estudio de USCIS en un lugar.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 pasos a la naturalización","El proceso oficial paso a paso.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Excepciones y adaptaciones","Excepciones por edad, discapacidad y otras, explicadas.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Recursos multilingües","Materiales oficiales de USCIS en español, árabe, chino, coreano, tagalo, vietnamita (para el examen 2008).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["Preguntas del examen 2008 (texto oficial)","El banco de 100 preguntas para solicitudes presentadas antes del 20 de oct. de 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Solicitud de tarifa reducida","Cómo solicitar la tarifa reducida de $380.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
@@ -865,15 +880,30 @@ function renderInterviewDone(){
 
 /* ---------- process ---------- */
 function renderProcess(){
-  const t = T(), el = document.getElementById("v-process");
+  const t = T(), el = document.getElementById("v-process"), pack = getPack();
   el.innerHTML = `<div class="card"><h2>${esc(t.procTitle)}</h2>
     <h3>${esc(t.eligH)}</h3><ul>${t.elig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
   <div class="card"><h2>${esc(t.stepsH)}</h2><ol class="steps">${t.steps.map(s=>`<li><b>${esc(s[0])}</b>${esc(s[1])}</li>`).join("")}</ol></div>
   <div class="card"><h2>${esc(t.feesH)}</h2>
     <table class="fees">${t.feeRows.map(r=>`<tr><td>${esc(r[0])}</td><td><b>${esc(r[1])}</b></td></tr>`).join("")}</table>
     <p class="note">⚠ ${esc(t.feesNote)}</p></div>
-  <div class="card"><h2>${esc(t.excH)}</h2><div class="exgrid">${t.excs.map(e=>`<div class="excard"><b>${esc(e[0])}</b><p>${esc(e[1])}</p></div>`).join("")}</div></div>`;
+  <div class="card"><h2>${esc(t.excH)}</h2><div class="exgrid">${t.excs.map(e=>`<div class="excard"><b>${esc(e[0])}</b><p>${esc(e[1])}</p></div>`).join("")}</div></div>
+  <div class="card"><h2>\u{1F9F3} ${esc(t.packH)}</h2><p class="note">${esc(t.packIntro)}</p>
+    <div class="packlist">${t.packItems.map((x,i)=>`<label class="packrow${pack.includes(i)?" done":""}"><input type="checkbox" class="packchk" data-i="${i}"${pack.includes(i)?" checked":""}><span>${esc(x)}</span></label>`).join("")}</div>
+    <button class="btn ghost" id="packReset">${esc(t.packReset)}</button></div>
+  <div class="card"><h2>\u{1F4C5} ${esc(t.dayH)}</h2><ul>${t.dayTips.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;
+  el.querySelectorAll(".packchk").forEach(c=>c.onchange=()=>{
+    const i=+c.dataset.i, p=getPack();
+    if(c.checked && !p.includes(i)) p.push(i);
+    if(!c.checked) p.splice(p.indexOf(i),1);
+    localStorage.setItem("oath_pack",JSON.stringify(p));
+    c.closest(".packrow").classList.toggle("done",c.checked);
+  });
+  document.getElementById("packReset").onclick=()=>{ localStorage.removeItem("oath_pack"); renderProcess(); };
 }
+
+/* ---------- interview-day packing list ---------- */
+function getPack(){ try{ return JSON.parse(localStorage.getItem("oath_pack")||"[]"); }catch(e){ return []; } }
 
 /* ---------- resources ---------- */
 function renderResources(){
