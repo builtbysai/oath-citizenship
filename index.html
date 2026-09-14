@@ -364,6 +364,8 @@ const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
 const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
 const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,60)));
+let intMistakes = new Set(JSON.parse(localStorage.getItem("oath_int_mistakes") || "[]"));
+const saveIntMistakes = () => localStorage.setItem("oath_int_mistakes", JSON.stringify([...intMistakes].slice(0,40)));
 /* active question bank + namespaced per-bank progress keys ("08:"=2008 test, "25:"=2025 test) */
 const Q = () => filed==="before" ? QUESTIONS2008 : QUESTIONS;
 const qkey = n => (filed==="before"?"08":"25") + ":" + n;
@@ -679,11 +681,19 @@ function renderInterview(){
     <p>${t.intIntro}</p><p class="note">${esc(t.intSource)}</p></div>
     <div class="card"><h2>${esc(t.intPracticeH)}</h2><p class="note">${esc(t.intPracticeD)}</p>
     <div class="center"><button class="btn coral" id="intStart">${esc(t.intStart)}</button></div></div>
+    ${intMistakes.size?`<div class="card"><div class="center"><button class="btn gold big" id="intReview">${esc(t.reviewBtn(intMistakes.size))}</button></div></div>`:""}
     <div class="chips">${chips}</div><div id="nqlist">${list.map(nqCardHTML).join("")}</div>`;
   el.querySelector("#intStart").onclick = startInterviewPractice;
+  const ir = el.querySelector("#intReview"); if(ir) ir.onclick = startInterviewReview;
 }
 function startInterviewPractice(){
-  ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,10), idx:0, ok:0 };
+  ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,10), idx:0, ok:0, review:false };
+  renderInterviewQ();
+}
+function startInterviewReview(){
+  const qs = N400.questions.filter(q=>intMistakes.has(q.item));
+  if(!qs.length){ renderInterview(); return; }
+  ipz = { order:[...qs].sort(()=>Math.random()-.5), idx:0, ok:0, review:true };
   renderInterviewQ();
 }
 function renderInterviewQ(){
@@ -700,6 +710,8 @@ function interviewAnswer(yes){
   const varies = q.expected==="varies";
   const right = varies || (yes === (q.expected==="yes"));
   if(right) ipz.ok++;
+  if(!right && !varies){ intMistakes.add(q.item); saveIntMistakes(); }
+  if(ipz.review && right){ intMistakes.delete(q.item); saveIntMistakes(); }
   el.innerHTML = `<div class="card"><div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
     <div class="bigq">“${esc(q.en)}”</div>
     <div class="${right?"fb-ok":"fb-bad"}">${right?"✓":"✗"} ${esc(right?t.intCorrect:t.intWrong)}</div>
@@ -711,11 +723,14 @@ function interviewAnswer(yes){
 }
 function renderInterviewDone(){
   const t = T(), el = document.getElementById("v-interview");
-  el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8?"🎉":"💪"}</div>
+  const reviewMsg = ipz.review ? (intMistakes.size===0 ? t.clearedAll : t.stillLeft(intMistakes.size)) : null;
+  el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8||ipz.review?"🎉":"💪"}</div>
     <h2>${esc(t.intDone)}</h2><p style="color:var(--muted)">${esc(t.intScore(ipz.ok))}</p>
-    <button class="btn coral" id="intAgain">${esc(t.intAgain)}</button>
+    ${reviewMsg?`<p class="${intMistakes.size===0?"fb-ok":"fb-bad"}">${esc(reviewMsg)}</p>`:""}
+    ${ipz.review&&intMistakes.size?`<button class="btn coral" id="intAgain2">${esc(t.reviewBtn(intMistakes.size))}</button>`:`<button class="btn coral" id="intAgain">${esc(t.intAgain)}</button>`}
     <div><button class="btn ghost" id="intBack">← ${esc(t.all)}</button></div></div>`;
-  el.querySelector("#intAgain").onclick = startInterviewPractice;
+  const ag = el.querySelector("#intAgain"); if(ag) ag.onclick = startInterviewPractice;
+  const ag2 = el.querySelector("#intAgain2"); if(ag2) ag2.onclick = startInterviewReview;
   el.querySelector("#intBack").onclick = ()=>{ ipz=null; renderInterview(); };
 }
 
