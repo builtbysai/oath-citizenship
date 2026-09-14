@@ -1,0 +1,29 @@
+{
+  "name": "Oath — Study for U.S. Citizenship",
+  "short_name": "Oath",
+  "description": "Bilingual (EN/ES) study app for the U.S. naturalization interview: civics practice, reading, dictation, mock interview, and N-400 prep.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#faf6ec",
+  "theme_color": "#1b2f4b",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
