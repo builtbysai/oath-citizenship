@@ -6,7 +6,7 @@ en:{
   filingTitle:"When did you file Form N-400?",
   filedBefore:"Before Oct 20, 2025", filedAfter:"On / after Oct 20, 2025",
   testAfterHTML:"<b>You take the 2025 civics test:</b> 128 study questions. The officer asks up to 20 — you need <b>12 correct</b> to pass (it stops early at 9 wrong).",
-  testBeforeHTML:"<b>You take the 2008 civics test:</b> 100 questions, the officer asks up to 10 — you need <b>6 correct</b> to pass. Study the official 2008 materials here:",
+  testBeforeHTML:"<b>You take the 2008 civics test:</b> all 100 questions are in this app below. The officer asks up to 10 — you need <b>6 correct</b> to pass.",
   testBeforeLink:"Official 2008 questions (USCIS text)",
   studyTitle:"Study the questions", all:"All", star65:"★ 65/20",
   tapReveal:"Tap a question to see the answer. Tap 🔊 to hear it read aloud.",
@@ -20,6 +20,8 @@ en:{
   practiceTitle:"Practice test", start:"Start",
   practiceIntro:"Like the real interview: questions are asked out loud. Read each question, say your answer out loud, then check yourself honestly.",
   testStd:"2025 test — standard", testStdDesc:"Up to 20 questions · 12 correct to pass · stops at 9 wrong",
+  testStd08:"2008 test — standard", testStdDesc08:"Up to 10 questions · 6 correct to pass · stops at 5 wrong",
+  practiceIntro08:"Like the real 2008 interview: the officer asks up to 10 questions — answer 6 correctly to pass. Read each question, say your answer out loud, then check yourself honestly.",
   testSenior:"65/20 special", testSeniorDesc:"10 questions from the ★ set · 6 correct to pass",
   oldTestNote:"Filed before Oct 20, 2025? You take the 2008 test — practice with the official materials:",
   showAnswer:"Show answer", iKnew:"✓ I knew it", iMissed:"✗ I missed it",
@@ -27,6 +29,13 @@ en:{
   correctToPass:(n)=>`${n} correct to pass`, wrongs:(n)=>`${n} wrong`,
   passMsg:"You passed! 🎉", failMsg:"Not yet — keep studying 💪",
   yourScore:"Your score", reviewMissed:"Review what you missed:", tryAgain:"Try again", backToSetup:"← Choose another test",
+  searchPh:"🔍 Search questions or answers…",
+  noResults:"No questions match your search.",
+  historyH:"Your practice history", historyEmpty:"No practice tests yet — your results will appear here.",
+  reviewBtn:(n)=>`🔁 Review mistakes (${n})`,
+  reviewIntro:"Questions you missed before. Tap “I knew it” to clear one from this list.",
+  clearedAll:"All clear — no mistakes left! 🎉",
+  stillLeft:(n)=>`${n} still need${n===1?"s":""} work — keep reviewing.`,
   readingTitle:"Reading", writingTitle:"Speaking, reading & writing",
   speakH:"Speaking", speakP:"No separate test — the officer judges your spoken English during the interview. Understand the questions and answer in English.",
   readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary — tap any word to hear it:",
@@ -51,7 +60,7 @@ es:{
   filingTitle:"¿Cuándo presentaste el Formulario N-400?",
   filedBefore:"Antes del 20 de oct. de 2025", filedAfter:"El 20 de oct. de 2025 o después",
   testAfterHTML:"<b>Tomas el examen de educación cívica 2025:</b> 128 preguntas de estudio. El oficial hace hasta 20 preguntas — necesitas <b>12 correctas</b> para aprobar (se detiene con 9 errores).",
-  testBeforeHTML:"<b>Tomas el examen de educación cívica 2008:</b> 100 preguntas, el oficial hace hasta 10 — necesitas <b>6 correctas</b> para aprobar. Estudia los materiales oficiales 2008 aquí:",
+  testBeforeHTML:"<b>Tomas el examen de educación cívica 2008:</b> las 100 preguntas están en esta aplicación abajo. El oficial hace hasta 10 — necesitas <b>6 correctas</b> para aprobar.",
   testBeforeLink:"Preguntas oficiales 2008 (texto de USCIS)",
   studyTitle:"Estudia las preguntas", all:"Todas", star65:"★ 65/20",
   tapReveal:"Toca una pregunta para ver la respuesta. Toca 🔊 para escucharla.",
@@ -65,6 +74,8 @@ es:{
   practiceTitle:"Examen de práctica", start:"Comenzar",
   practiceIntro:"Como en la entrevista real: las preguntas se hacen en voz alta. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
   testStd:"Examen 2025 — estándar", testStdDesc:"Hasta 20 preguntas · 12 correctas para aprobar · se detiene con 9 errores",
+  testStd08:"Examen 2008 — estándar", testStdDesc08:"Hasta 10 preguntas · 6 correctas para aprobar · se detiene con 5 errores",
+  practiceIntro08:"Como en la entrevista real de 2008: el oficial hace hasta 10 preguntas — responde 6 correctamente para aprobar. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
   testSenior:"Especial 65/20", testSeniorDesc:"10 preguntas del grupo ★ · 6 correctas para aprobar",
   oldTestNote:"¿Presentaste antes del 20 de oct. de 2025? Tomas el examen 2008 — practica con los materiales oficiales:",
   showAnswer:"Mostrar respuesta", iKnew:"✓ La sabía", iMissed:"✗ No la sabía",
@@ -72,6 +83,13 @@ es:{
   correctToPass:(n)=>`${n} correctas para aprobar`, wrongs:(n)=>`${n} errores`,
   passMsg:"¡Aprobaste! 🎉", failMsg:"Todavía no — sigue estudiando 💪",
   yourScore:"Tu puntaje", reviewMissed:"Repasa lo que fallaste:", tryAgain:"Intentar de nuevo", backToSetup:"← Elige otro examen",
+  searchPh:"🔍 Buscar preguntas o respuestas…",
+  noResults:"Ninguna pregunta coincide con tu búsqueda.",
+  historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía — tus resultados aparecerán aquí.",
+  reviewBtn:(n)=>`🔁 Repasar errores (${n})`,
+  reviewIntro:"Preguntas que fallaste antes. Toca «La sabía» para quitar una de esta lista.",
+  clearedAll:"¡Todo claro — no quedan errores! 🎉",
+  stillLeft:(n)=>`${n} aún necesita${n===1?"":"n"} trabajo — sigue repasando.`,
   readingTitle:"Lectura", writingTitle:"Hablar, leer y escribir",
   speakH:"Hablar", speakP:"Sin examen separado — el oficial evalúa tu inglés hablado durante la entrevista. Entiende las preguntas y responde en inglés.",
   readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura — toca cualquier palabra para escucharla:",
@@ -106,10 +124,23 @@ const VARIES_LINK = {
 let lang = localStorage.getItem("oath_lang") || "en";
 let filed = localStorage.getItem("oath_filed") || "after";
 let known = new Set(JSON.parse(localStorage.getItem("oath_known") || "[]"));
-let studyCat = "all", studyStar = false, curView = "study";
+let history = JSON.parse(localStorage.getItem("oath_history") || "[]");
+let mistakes = new Set(JSON.parse(localStorage.getItem("oath_mistakes") || "[]"));
+let studyCat = "all", studyStar = false, studyQ = "", curView = "study";
 const T = () => STR[lang];
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
+const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
+const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,60)));
+/* active question bank + namespaced per-bank progress keys ("08:"=2008 test, "25:"=2025 test) */
+const Q = () => filed==="before" ? QUESTIONS2008 : QUESTIONS;
+const qkey = n => (filed==="before"?"08":"25") + ":" + n;
+(function migrateKeys(){
+  const mig = s => new Set([...s].map(k => String(k).includes(":") ? k : "25:"+k));
+  const k2 = mig(known), m2 = mig(mistakes);
+  const same = (a,b) => a.size===b.size && [...a].every(k=>b.has(k));
+  if(!same(k2,known) || !same(m2,mistakes)){ known=k2; mistakes=m2; saveKnown(); saveMistakes(); }
+})();
 
 /* ---------- speech ---------- */
 let voices = [];
@@ -145,47 +176,64 @@ function filingCard(){
       <button data-f="before" class="${filed==="before"?"on":""}">${esc(t.filedBefore)}</button>
       <button data-f="after" class="${filed==="after"?"on":""}">${esc(t.filedAfter)}</button>
     </div>
-    <div class="note" style="margin-top:10px">${filed==="after" ? t.testAfterHTML
-      : t.testBeforeHTML + ` <a href="http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format" target="_blank" rel="noopener">${esc(t.testBeforeLink)}</a>`}</div>
+    <div class="note" style="margin-top:10px">${filed==="after" ? t.testAfterHTML : t.testBeforeHTML}</div>
   </div>`;
 }
 
 /* ---------- study ---------- */
-function cats(){ const seen=[]; QUESTIONS.forEach(q=>{ const c=lang==="es"?q.cat_es:q.cat; if(!seen.includes(c)) seen.push(c); }); return seen; }
-function renderStudy(){
-  const t = T(), el = document.getElementById("v-study");
-  const chipAll = `<button class="chip${studyCat==="all"?" on":""}" data-c="all">${esc(t.all)}</button>`;
-  const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
-  const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
-  let list = QUESTIONS.filter(q=>{
+function cats(){ const seen=[]; Q().forEach(q=>{ const c=lang==="es"?q.cat_es:q.cat; if(!seen.includes(c)) seen.push(c); }); return seen; }
+function filteredQuestions(){
+  let list = Q().filter(q=>{
     if(studyStar && !q.star) return false;
     if(studyCat!=="all" && (lang==="es"?q.cat_es:q.cat)!==studyCat) return false;
     return true;
   });
-  const knownN = QUESTIONS.filter(q=>known.has(q.n)).length;
+  const sq = studyQ.trim().toLowerCase();
+  if(sq) list = list.filter(q =>
+    String(q.n)===sq ||
+    q.q.en.toLowerCase().includes(sq) || q.q.es.toLowerCase().includes(sq) ||
+    q.a.en.join(" ").toLowerCase().includes(sq) || q.a.es.join(" ").toLowerCase().includes(sq));
+  return list;
+}
+function qCardHTML(q){
+  const t = T(), cat = lang==="es"?q.cat_es:q.cat;
+  return `<div class="qcard" data-n="${q.n}">
+    <div class="qhead" data-act="toggle">
+      <div class="qnum${q.star?" star":""}">${q.n}</div>
+      <div style="flex:1"><div class="qtext">${esc(q.q[lang])}</div>
+      <div class="qmeta"><span class="tag cat">${esc(cat)}</span>
+      ${q.star?`<span class="tag star65">★ 65/20</span>`:""}
+      ${q.varies?`<span class="tag varies">⚠</span>`:""}</div></div>
+    </div>
+    <div class="qactions">
+      <button class="iconbtn" data-act="speak" aria-label="${esc(t.listen)}">${esc(t.listen)}</button>
+      <button class="iconbtn${known.has(qkey(q.n))?" known-on":""}" data-act="known">${esc(t.knowIt)}</button>
+    </div>
+    <div class="qbody">${answerHTML(q)}</div>
+  </div>`;
+}
+function renderStudy(){
+  const t = T(), el = document.getElementById("v-study");
+  const chipAll = `<button class="chip${studyCat==="all"?" on":""}" data-c="all">${esc(t.all)}</button>`;
+  const chipStar = filed==="before" ? "" : `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
+  const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
+  const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
   el.innerHTML = filingCard() + `<div class="card"><h2>${esc(t.studyTitle)}</h2>
     <div class="note">${esc(t.tapReveal)}</div>
-    <div class="progress" aria-hidden="true"><div style="width:${(knownN/QUESTIONS.length*100).toFixed(1)}%"></div></div>
-    <div class="note">${esc(t.knownCount(knownN, QUESTIONS.length))}</div></div>
+    <div class="progress" aria-hidden="true"><div style="width:${(knownN/Q().length*100).toFixed(1)}%"></div></div>
+    <div class="note">${esc(t.knownCount(knownN, Q().length))}</div></div>
+    <input id="qsearch" class="search" type="search" placeholder="${esc(t.searchPh)}" value="${esc(studyQ)}" aria-label="${esc(t.searchPh)}">
     <div class="chips">${chips}</div><div id="qlist"></div>`;
-  const ql = el.querySelector("#qlist");
-  ql.innerHTML = list.map(q=>{
-    const cat = lang==="es"?q.cat_es:q.cat;
-    return `<div class="qcard" data-n="${q.n}">
-      <div class="qhead" data-act="toggle">
-        <div class="qnum${q.star?" star":""}">${q.n}</div>
-        <div style="flex:1"><div class="qtext">${esc(q.q[lang])}</div>
-        <div class="qmeta"><span class="tag cat">${esc(cat)}</span>
-        ${q.star?`<span class="tag star65">★ 65/20</span>`:""}
-        ${q.varies?`<span class="tag varies">⚠</span>`:""}</div></div>
-      </div>
-      <div class="qactions">
-        <button class="iconbtn" data-act="speak" aria-label="${esc(t.listen)}">${esc(t.listen)}</button>
-        <button class="iconbtn${known.has(q.n)?" known-on":""}" data-act="known">${esc(t.knowIt)}</button>
-      </div>
-      <div class="qbody">${answerHTML(q)}</div>
-    </div>`;
-  }).join("");
+  renderQList();
+  const si = el.querySelector("#qsearch");
+  si.addEventListener("input", ()=>{ studyQ = si.value; renderQList(); });
+}
+function renderQList(){
+  const ql = document.getElementById("qlist");
+  if(!ql) return;
+  const list = filteredQuestions();
+  ql.innerHTML = list.length ? list.map(qCardHTML).join("")
+    : `<div class="card"><p class="note" style="text-align:center">${esc(t.noResults)}</p></div>`;
 }
 function answerHTML(q){
   const t = T();
@@ -206,17 +254,31 @@ function answerHTML(q){
 
 /* ---------- practice ---------- */
 let pz = null;
+function historyHTML(){
+  const t = T();
+  if(!history.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
+  return `<ul class="histlist">` + history.slice(-5).reverse().map(h=>{
+    const dot = h.pass ? "🟢" : "🔴";
+    const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : "▶";
+    const bank = h.bank==="08" ? "2008" : h.bank==="25" ? "2025" : "";
+    return `<li>${dot} ${mode} <b>${h.right}/${h.total}</b> <span class="note">${bank}${bank?" · ":""}${esc(h.d)}</span></li>`;
+  }).join("") + `</ul>`;
+}
 function renderPractice(){
   const t = T(), el = document.getElementById("v-practice");
   if(!pz){
+    const bank = filed==="before" ? "08:" : "25:";
+    const mcount = [...mistakes].filter(k=>k.startsWith(bank)).length;
     el.innerHTML = filingCard() + `<div class="card"><h2>${esc(t.practiceTitle)}</h2>
-      <p class="note">${esc(t.practiceIntro)}</p>
+      <p class="note">${esc(filed==="before" ? t.practiceIntro08 : t.practiceIntro)}</p>
       <div class="pill-row">
-        <button class="btn big" data-p="std">▶ ${esc(t.testStd)}<br><span style="font-weight:400;font-size:13px">${esc(t.testStdDesc)}</span></button>
-        <button class="btn big ghost" data-p="senior">★ ${esc(t.testSenior)}<br><span style="font-weight:400;font-size:13px">${esc(t.testSeniorDesc)}</span></button>
+        <button class="btn big" data-p="std">▶ ${esc(filed==="before" ? t.testStd08 : t.testStd)}<br><span style="font-weight:400;font-size:13px">${esc(filed==="before" ? t.testStdDesc08 : t.testStdDesc)}</span></button>
+        ${filed==="before" ? "" : `<button class="btn big ghost" data-p="senior">★ ${esc(t.testSenior)}<br><span style="font-weight:400;font-size:13px">${esc(t.testSeniorDesc)}</span></button>`}
       </div>
-      ${filed==="before"?`<div class="warnbox">${esc(t.oldTestNote)} <a href="http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format" target="_blank" rel="noopener">${esc(t.testBeforeLink)}</a></div>`:""}
-    </div>`;
+      ${mcount?`<button class="btn big gold" data-p="review" style="margin-top:10px">${esc(typeof t.reviewBtn==="function"?t.reviewBtn(mcount):t.reviewBtn)}</button>
+      <p class="note">${esc(t.reviewIntro)}</p>`:""}
+    </div>
+    <div class="card"><h2>${esc(t.historyH)}</h2>${historyHTML()}</div>`;
     return;
   }
   if(pz.done){ renderPracticeDone(el); return; }
@@ -242,25 +304,43 @@ function renderPractice(){
   el.querySelector('[data-act="speak"]').onclick = ()=>speak(q.q[lang]);
 }
 function startPractice(mode){
-  const senior = mode==="senior";
-  const pool = senior ? QUESTIONS.filter(q=>q.star) : [...QUESTIONS];
+  const review = mode==="review", senior = mode==="senior", before = filed==="before";
+  let pool;
+  if(review) pool = Q().filter(q=>mistakes.has(qkey(q.n)));
+  else pool = senior ? Q().filter(q=>q.star) : [...Q()];
   for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
-  const total = senior?10:20, need = senior?6:12, maxWrong = senior?5:9;
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior};
+  const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
+  const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
+  const maxWrong = review ? total+1 : (senior?5:(before?5:9));
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false};
   renderPractice();
 }
 function practiceAnswer(ok){
   const q = pz.order[pz.idx];
-  if(ok) pz.right++; else { pz.wrong++; pz.missed.push(q); }
+  if(ok){ pz.right++; if(pz.review){ mistakes.delete(qkey(q.n)); saveMistakes(); } }
+  else { pz.wrong++; pz.missed.push(q); }
   pz.idx++;
-  if(pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length) pz.done = true;
+  const finished = pz.review ? pz.idx>=pz.order.length
+    : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
+  if(finished) pz.done = true;
   renderPractice();
   window.scrollTo({top:0, behavior:"smooth"});
 }
 function renderPracticeDone(el){
   const t = T(), pass = pz.right>=pz.need;
+  if(!pz.recorded){
+    pz.recorded = true;
+    history.push({d:new Date().toISOString().slice(0,10),
+      mode: pz.review?"review":(pz.senior?"senior":"std"),
+      right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25"});
+    saveHistory();
+    pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
+  }
+  const headMsg = pz.review
+    ? (mistakes.size===0 ? t.clearedAll : t.stillLeft(mistakes.size))
+    : (pass ? t.passMsg : t.failMsg);
   el.innerHTML = `<div class="card" style="text-align:center">
-    <div class="result ${pass?"pass":"fail"}">${esc(pass?t.passMsg:t.failMsg)}</div>
+    <div class="result ${pz.review ? (mistakes.size===0?"pass":"fail") : (pass?"pass":"fail")}">${esc(headMsg)}</div>
     <div class="scorebar">
       <div class="scorepill ok"><b>${pz.right}</b><span>✓</span></div>
       <div class="scorepill bad"><b>${pz.wrong}</b><span>✗</span></div>
@@ -271,7 +351,7 @@ function renderPracticeDone(el){
     <button class="btn big gold" id="retry">${esc(t.tryAgain)}</button>
     <button class="btn big ghost" id="newtest">${esc(t.backToSetup)}</button>
   </div>`;
-  el.querySelector("#retry").onclick = ()=>startPractice(pz.senior?"senior":"std");
+  el.querySelector("#retry").onclick = ()=>startPractice(pz.review?"review":(pz.senior?"senior":"std"));
   el.querySelector("#newtest").onclick = ()=>{ pz=null; renderPractice(); };
 }
 
@@ -325,12 +405,12 @@ document.addEventListener("click", e=>{
   const card = e.target.closest(".qcard");
   if(card){
     const actBtn = e.target.closest("[data-act]");
-    const n = +card.dataset.n, q = QUESTIONS.find(x=>x.n===n);
+    const n = +card.dataset.n, q = Q().find(x=>x.n===n);
     if(actBtn){
-      const act = actBtn.dataset.act;
+      const act = actBtn.dataset.act, k = qkey(n);
       if(act==="toggle"){ card.classList.toggle("open"); }
       else if(act==="speak"){ e.stopPropagation(); speak(q.q[lang]+". "+q.a[lang].join(", ")); }
-      else if(act==="known"){ e.stopPropagation(); known.has(n)?known.delete(n):known.add(n); saveKnown(); actBtn.classList.toggle("known-on"); }
+      else if(act==="known"){ e.stopPropagation(); known.has(k)?known.delete(k):known.add(k); saveKnown(); actBtn.classList.toggle("known-on"); }
       return;
     }
   }

@@ -53,6 +53,12 @@ a{color:var(--blue);}
 .chip{flex:0 0 auto; border:1px solid var(--line); background:#fff; border-radius:999px;
   padding:8px 14px; font-size:14px; font-weight:600; color:var(--navy); cursor:pointer; white-space:nowrap;}
 .chip.on{background:var(--navy); color:#fff; border-color:var(--navy);}
+.search{width:100%; font:inherit; font-size:16px; padding:12px 16px; border-radius:14px;
+  border:1px solid var(--line); background:#fff; margin:0 0 12px; color:var(--ink); box-sizing:border-box;}
+.search:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,.18);}
+.histlist{list-style:none; margin:0; padding:0;}
+.histlist li{padding:8px 2px; border-bottom:1px solid var(--line); font-size:16px;}
+.histlist li:last-child{border-bottom:0;}
 .qcard{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
   box-shadow:var(--shadow); margin:0 0 12px; overflow:hidden;}
 .qhead{display:flex; align-items:flex-start; gap:10px; padding:14px 14px 12px; cursor:pointer;}
@@ -155,6 +161,7 @@ select,input[type=text]{font-size:16px; padding:10px 12px; border:1px solid var(
 <nav class="tabs"><div class="tabs-inner" id="tabs"></div></nav>
 <footer class="disc" id="disclaimer"></footer>
 <script>/*__DATA_JS__*/</script>
+<script>/*__DATA2008_JS__*/</script>
 <script>/*__VOCAB_JS__*/</script>
 <script>
 /*__APP_JS__*/
