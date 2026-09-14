@@ -52,6 +52,8 @@ en:{
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
   dictDone:"Dictation complete!", dictScore:(s,n)=>`${s} of ${n} correct`,
+  streakMsg:n=>n===1?"🔥 1 day streak":"🔥 "+n+" day streak",
+  streakD:"Finish any practice, reading, or dictation once a day to keep it burning.",
   cdH:"Interview countdown",
   cdD:"Set your interview date and we\u2019ll count down with a study pace for the days left.",
   cdSet:"Set date", cdChange:"Change", cdClear:"Clear",
@@ -156,6 +158,8 @@ es:{
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
   dictDone:"¡Dictado completado!", dictScore:(s,n)=>`${s} de ${n} correctas`,
+  streakMsg:n=>n===1?"🔥 Racha de 1 d\u00eda":"🔥 Racha de "+n+" d\u00edas",
+  streakD:"Completa cualquier pr\u00e1ctica, lectura o dictado una vez al d\u00eda para mantenerla.",
   cdH:"Cuenta regresiva",
   cdD:"Pon la fecha de tu entrevista y contaremos los d\u00edas con un ritmo de estudio.",
   cdSet:"Fijar fecha", cdChange:"Cambiar", cdClear:"Borrar",
@@ -322,7 +326,7 @@ function renderStudy(){
   const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
   const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  el.innerHTML = filingCard() + countdownCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
+  el.innerHTML = filingCard() + countdownCard() + streakCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
     <p>${esc(t.mockD)}</p>
     <div class="center"><button class="btn gold big" id="mockStart">${esc(t.mockStart)}</button></div></div>
     <div class="card"><h2>${esc(t.studyTitle)}</h2>
@@ -336,6 +340,26 @@ function renderStudy(){
   si.addEventListener("input", ()=>{ studyQ = si.value; renderQList(); });
   el.querySelector("#mockStart").onclick = startMock;
   wireCountdown();
+}
+
+/* ---------- daily streak ---------- */
+function dayStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function getStreak(){ try{ return JSON.parse(localStorage.getItem("oath_streak")||'{"count":0}').count||0; }catch(e){ return 0; } }
+function bumpStreak(){
+  let st; try{ st = JSON.parse(localStorage.getItem("oath_streak")||'{"count":0,"last":""}'); }catch(e){ st = {count:0,last:""}; }
+  const t = dayStr(new Date());
+  if(st.last!==t){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    st.count = (st.last===dayStr(y)) ? st.count+1 : 1;
+    st.last = t;
+    localStorage.setItem("oath_streak", JSON.stringify(st));
+  }
+  return st.count;
+}
+function streakCard(){
+  const t = T(), n = getStreak();
+  if(!n) return `<div class="card streakcard"><div class="streakline">🔥</div><p class="note" style="margin:0">${esc(t.streakD)}</p></div>`;
+  return `<div class="card streakcard"><div class="streakline">${esc(t.streakMsg(n))}</div><p class="note" style="margin:0">${esc(t.streakD)}</p></div>`;
 }
 
 /* ---------- interview countdown ---------- */
@@ -496,6 +520,7 @@ function renderPracticeDone(el){
   const t = T(), pass = pz.right>=pz.need;
   if(!pz.recorded){
     pz.recorded = true;
+    bumpStreak();
     history.push({d:new Date().toISOString().slice(0,10),
       mode: pz.review?"review":(pz.senior?"senior":"std"),
       right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
@@ -561,7 +586,7 @@ function renderReadQ(){
   el.querySelector("#rpNo").onclick = rpNext;
 }
 function rpNext(){ rp.idx++; rp.idx>=3?renderReadDone():renderReadQ(); }
-function renderReadDone(){
+function renderReadDone(){ bumpStreak();
   if(rp.mock){ mock.read = rp.ok; startMockDict(); return; }
   const t = T(), el = document.getElementById("v-english"), pass = rp.ok>=1;
   el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
@@ -651,7 +676,7 @@ function checkDictation(){
     <div class="center"><button class="btn coral" id="dzNext">${esc(t.dictNext)}</button></div></div>`;
   el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
-function renderDictDone(){
+function renderDictDone(){ bumpStreak();
   if(dz.mock){ mock.dict = dz.ok; startMockCivics(); return; }
   const t = T(), el = document.getElementById("v-english");
   const pass = dz.review ? dzMistakes.size===0 : dz.ok>=1;
