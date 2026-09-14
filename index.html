@@ -108,6 +108,11 @@ nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(-
 .btn{display:inline-block; border:0; border-radius:12px; padding:13px 22px; font-size:16px; font-weight:700;
   cursor:pointer; background:var(--navy); color:#fff; margin:6px 6px 6px 0;}
 .btn.gold{background:var(--gold); color:#12233a;}
+.mockbanner{text-align:center;font-weight:800;background:var(--gold-soft);border:2px solid var(--gold);border-radius:12px;padding:8px 10px;margin-bottom:12px;color:#5b4413;}
+.mockrows{max-width:340px;margin:14px auto;text-align:left;}
+.mockrow{display:flex;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px dashed var(--line);}
+.mockrow.ok{color:#1d6b2a;} .mockrow.bad{color:#a33327;}
+.mockrow span:first-child{font-size:20px;} .mockrow b{margin-left:auto;}
 .btn.ghost{background:#fff; color:var(--navy); border:2px solid var(--line);}
 .btn:active{transform:scale(.97);}
 .btn.big{width:100%; font-size:17px; padding:15px;}
@@ -238,6 +243,12 @@ en:{
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
   dictDone:"Dictation complete!", dictScore:(s,n)=>`${s} of ${n} correct`,
+  mockH:"Full mock interview", mockD:"Simulate the real appointment, start to finish: reading, dictation, civics, then interview questions.",
+  mockStart:"Start mock interview", mockPhase:(n)=>`🎭 Mock interview · part ${n} of 4`,
+  mockRead:"Reading", mockDict:"Dictation", mockCiv:"Civics", mockN400:"Interview questions",
+  mockSumH:"Mock interview results",
+  mockPassAll:"You passed every scored part — you're ready! 🎉",
+  mockFailSome:"Keep practicing the parts marked ✗, then run it again.",
   readH:"Reading practice",
   readD:"Like the real test: read <b>1 of 3</b> sentences aloud so the officer can understand every word. Read each sentence out loud, then tap honestly.",
   readStart:"Start reading practice", readAloud:"🔊 Hear it first",
@@ -320,6 +331,12 @@ es:{
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
   dictDone:"¡Dictado completado!", dictScore:(s,n)=>`${s} de ${n} correctas`,
+  mockH:"Simulacro completo de entrevista", mockD:"Simula la cita real de principio a fin: lectura, dictado, cívica y preguntas de entrevista.",
+  mockStart:"Empezar simulacro", mockPhase:(n)=>`🎭 Simulacro · parte ${n} de 4`,
+  mockRead:"Lectura", mockDict:"Dictado", mockCiv:"Cívica", mockN400:"Preguntas de entrevista",
+  mockSumH:"Resultados del simulacro",
+  mockPassAll:"¡Aprobaste todas las partes puntuadas — estás listo/a! 🎉",
+  mockFailSome:"Sigue practicando las partes marcadas ✗ y repite el simulacro.",
   readH:"Práctica de lectura",
   readD:"Como en el examen real: lee <b>1 de 3</b> oraciones en voz alta para que el oficial entienda cada palabra. Lee cada oración en voz alta y luego toca con honestidad.",
   readStart:"Empezar la práctica de lectura", readAloud:"🔊 Escucharla primero",
@@ -468,7 +485,10 @@ function renderStudy(){
   const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
   const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  el.innerHTML = filingCard() + `<div class="card"><h2>${esc(t.studyTitle)}</h2>
+  el.innerHTML = filingCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
+    <p>${esc(t.mockD)}</p>
+    <div class="center"><button class="btn gold big" id="mockStart">${esc(t.mockStart)}</button></div></div>
+    <div class="card"><h2>${esc(t.studyTitle)}</h2>
     <div class="note">${esc(t.tapReveal)}</div>
     <div class="progress" aria-hidden="true"><div style="width:${(knownN/Q().length*100).toFixed(1)}%"></div></div>
     <div class="note">${esc(t.knownCount(knownN, Q().length))}</div></div>
@@ -477,6 +497,7 @@ function renderStudy(){
   renderQList();
   const si = el.querySelector("#qsearch");
   si.addEventListener("input", ()=>{ studyQ = si.value; renderQList(); });
+  el.querySelector("#mockStart").onclick = startMock;
 }
 function renderQList(){
   const ql = document.getElementById("qlist");
@@ -533,7 +554,7 @@ function renderPractice(){
   }
   if(pz.done){ renderPracticeDone(el); return; }
   const q = pz.order[pz.idx], t2 = T();
-  el.innerHTML = `<div class="card">
+  el.innerHTML = `<div class="card">${pz.mock?mockBanner(3):""}
     <div style="display:flex;justify-content:space-between;align-items:center">
       <b>${esc(t2.qNum(pz.idx+1))}</b>
       <span class="note">${esc(t2.correctToPass(pz.need))} · <span style="color:${pz.wrong>0?"var(--red)":"inherit"}">${esc(t2.wrongs(pz.wrong))}</span></span>
@@ -553,7 +574,7 @@ function renderPractice(){
   box.querySelector("#showA").onclick = showAns;
   el.querySelector('[data-act="speak"]').onclick = ()=>speak(q.q[lang]);
 }
-function startPractice(mode){
+function startPractice(mode, isMock){
   const review = mode==="review", senior = mode==="senior", before = filed==="before";
   let pool;
   if(review) pool = Q().filter(q=>mistakes.has(qkey(q.n)));
@@ -562,7 +583,7 @@ function startPractice(mode){
   const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
   const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
   const maxWrong = review ? total+1 : (senior?5:(before?5:9));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false, mock:!!isMock};
   renderPractice();
 }
 function practiceAnswer(ok){
@@ -586,6 +607,7 @@ function renderPracticeDone(el){
     saveHistory();
     pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
   }
+  if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; startMockN400(); return; }
   const headMsg = pz.review
     ? (mistakes.size===0 ? t.clearedAll : t.stillLeft(mistakes.size))
     : (pass ? t.passMsg : t.failMsg);
@@ -633,7 +655,7 @@ function startReadPractice(){
 }
 function renderReadQ(){
   const t = T(), el = document.getElementById("v-english"), s = rp.order[rp.idx];
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.readQ(rp.idx+1, 3))}</div>
+  el.innerHTML = `<div class="card">${rp.mock?mockBanner(1):""}<div class="note">${esc(t.readQ(rp.idx+1, 3))}</div>
     <div class="bigq">“${esc(s)}”</div>
     <div class="center"><button class="iconbtn" id="rpHear">${esc(t.readAloud)}</button></div>
     <p class="note">${esc(t.readHonest)}</p>
@@ -645,6 +667,7 @@ function renderReadQ(){
 }
 function rpNext(){ rp.idx++; rp.idx>=3?renderReadDone():renderReadQ(); }
 function renderReadDone(){
+  if(rp.mock){ mock.read = rp.ok; startMockDict(); return; }
   const t = T(), el = document.getElementById("v-english"), pass = rp.ok>=1;
   el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
     <h2>${esc(t.readDone)}</h2><p style="color:var(--muted)">${esc(t.readScore(rp.ok))}</p>
@@ -653,6 +676,44 @@ function renderReadDone(){
     <div><button class="btn ghost" id="rpBack">← ${esc(t.writingTitle)}</button></div></div>`;
   el.querySelector("#rpAgain").onclick = startReadPractice;
   el.querySelector("#rpBack").onclick = ()=>{ rp=null; renderEnglish(); };
+}
+/* ---------- mock interview ---------- */
+let mock = null;
+const mockBanner = n => `<div class="mockbanner">${esc(T().mockPhase(n))}</div>`;
+function startMock(){
+  mock = {};
+  show("english");
+  rp = { order:[...READ_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, mock:true };
+  renderReadQ();
+}
+function startMockDict(){
+  dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, mock:true };
+  renderDictQ();
+}
+function startMockCivics(){ show("practice"); startPractice("std", true); }
+function startMockN400(){
+  show("interview");
+  ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,8), idx:0, ok:0, mock:true };
+  renderInterviewQ();
+}
+function renderMockSummary(){
+  const t = T(), el = document.getElementById("v-interview");
+  const rows = [
+    [t.mockRead, mock.read, 3, mock.read>=1],
+    [t.mockDict, mock.dict, 3, mock.dict>=1],
+    [t.mockCiv, mock.civics.right, mock.civics.total, mock.civics.pass],
+  ];
+  const allPass = rows.every(r=>r[3]);
+  el.innerHTML = `<div class="card starscreen"><div class="big">${allPass?"🎉":"💪"}</div>
+    <h2>${esc(t.mockSumH)}</h2>
+    <div class="mockrows">${rows.map(r=>`<div class="mockrow ${r[3]?"ok":"bad"}"><span>${r[3]?"✓":"✗"}</span><span>${esc(r[0])}</span><b>${r[1]}/${r[2]}</b></div>`).join("")}
+    <div class="mockrow"><span>📝</span><span>${esc(t.mockN400)}</span><b>${mock.n400}/8</b></div></div>
+    <p class="${allPass?"fb-ok":"fb-bad"}">${esc(allPass?t.mockPassAll:t.mockFailSome)}</p>
+    <button class="btn coral" id="mockAgain">${esc(t.mockStart)}</button>
+    <div><button class="btn ghost" id="mockBack">← ${esc(t.all)}</button></div></div>`;
+  el.querySelector("#mockAgain").onclick = startMock;
+  el.querySelector("#mockBack").onclick = ()=>{ mock=null; renderInterview(); };
+  window.scrollTo({top:0});
 }
 /* ---------- dictation ---------- */
 let dz = null;
@@ -672,7 +733,7 @@ function startDzReview(){
 function renderDictQ(){
   const t = T(), el = document.getElementById("v-english"), s = dz.order[dz.idx];
   const n = dz.order.length;
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
+  el.innerHTML = `<div class="card">${dz.mock?mockBanner(2):""}<div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
     <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
     <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
@@ -696,6 +757,7 @@ function checkDictation(){
   el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
 function renderDictDone(){
+  if(dz.mock){ mock.dict = dz.ok; startMockCivics(); return; }
   const t = T(), el = document.getElementById("v-english");
   const pass = dz.review ? dzMistakes.size===0 : dz.ok>=1;
   const reviewMsg = dz.review ? (dzMistakes.size===0 ? t.clearedAll : t.stillLeft(dzMistakes.size)) : null;
@@ -764,7 +826,7 @@ function startInterviewReview(){
 }
 function renderInterviewQ(){
   const t = T(), el = document.getElementById("v-interview"), q = ipz.order[ipz.idx];
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
+  el.innerHTML = `<div class="card">${ipz.mock?mockBanner(4):""}<div class="note">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</div>
     <div class="bigq">“${esc(q.en)}”</div>
     <div class="center"><button class="iconbtn" id="intSpeak">🔊 ${esc(t.listen)}</button></div>
     <div class="ynrow"><button class="btn big ghost" data-yn="y">${esc(t.intYes)}</button>
@@ -788,6 +850,7 @@ function interviewAnswer(yes){
   el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
 }
 function renderInterviewDone(){
+  if(ipz.mock){ mock.n400 = ipz.ok; renderMockSummary(); return; }
   const t = T(), el = document.getElementById("v-interview");
   const reviewMsg = ipz.review ? (intMistakes.size===0 ? t.clearedAll : t.stillLeft(intMistakes.size)) : null;
   el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8||ipz.review?"🎉":"💪"}</div>
