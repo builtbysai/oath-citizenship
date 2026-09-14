@@ -47,7 +47,7 @@ en:{
   dictCheck:"Check", dictNext:"Next →", dictQ:(a,b)=>`Sentence ${a} of ${b}`,
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
-  dictDone:"Dictation complete!", dictScore:(s)=>`${s} of 3 correct`,
+  dictDone:"Dictation complete!", dictScore:(s,n)=>`${s} of ${n} correct`,
   readH:"Reading practice",
   readD:"Like the real test: read <b>1 of 3</b> sentences aloud so the officer can understand every word. Read each sentence out loud, then tap honestly.",
   readStart:"Start reading practice", readAloud:"🔊 Hear it first",
@@ -129,7 +129,7 @@ es:{
   dictCheck:"Revisar", dictNext:"Siguiente →", dictQ:(a,b)=>`Frase ${a} de ${b}`,
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
-  dictDone:"¡Dictado completado!", dictScore:(s)=>`${s} de 3 correctas`,
+  dictDone:"¡Dictado completado!", dictScore:(s,n)=>`${s} de ${n} correctas`,
   readH:"Práctica de lectura",
   readD:"Como en el examen real: lee <b>1 de 3</b> oraciones en voz alta para que el oficial entienda cada palabra. Lee cada oración en voz alta y luego toca con honestidad.",
   readStart:"Empezar la práctica de lectura", readAloud:"🔊 Escucharla primero",
@@ -426,12 +426,14 @@ function renderEnglish(){
   </div>
   <div class="card"><h2>🎧 ${esc(t.dictH)}</h2><p>${t.dictD}</p>
     <div class="center"><button class="btn coral" id="dictStart">${esc(t.dictStart)}</button></div>
+    ${dzMistakes.size?`<div class="center" style="margin-top:10px"><button class="btn gold" id="dzReview">${esc(t.reviewBtn(dzMistakes.size))}</button></div>`:""}
   </div>
   <div class="card"><h2>📢 ${esc(t.readH)}</h2><p>${t.readD}</p>
     <div class="center"><button class="btn coral" id="readStart">${esc(t.readStart)}</button></div>
   </div>`;
   el.querySelector("#dictStart").onclick = startDictation;
   el.querySelector("#readStart").onclick = startReadPractice;
+  const dzr = el.querySelector("#dzReview"); if(dzr) dzr.onclick = startDzReview;
 }
 /* ---------- reading practice ---------- */
 let rp = null;
@@ -464,14 +466,23 @@ function renderReadDone(){
 }
 /* ---------- dictation ---------- */
 let dz = null;
+let dzMistakes = new Set(JSON.parse(localStorage.getItem("oath_dz_mistakes") || "[]"));
+const saveDzMistakes = () => localStorage.setItem("oath_dz_mistakes", JSON.stringify([...dzMistakes].slice(0,30)));
 function normWords(s){ return s.toLowerCase().replace(/[.,!?;:'"]/g,"").split(/\s+/).filter(Boolean); }
 function startDictation(){
-  dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0 };
+  dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, review:false };
+  renderDictQ();
+}
+function startDzReview(){
+  const ss = DICT_SENTENCES.filter(s=>dzMistakes.has(s));
+  if(!ss.length){ renderEnglish(); return; }
+  dz = { order:[...ss].sort(()=>Math.random()-.5), idx:0, ok:0, review:true };
   renderDictQ();
 }
 function renderDictQ(){
   const t = T(), el = document.getElementById("v-english"), s = dz.order[dz.idx];
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, 3))}</div>
+  const n = dz.order.length;
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
     <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
     <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
@@ -484,22 +495,28 @@ function checkDictation(){
   const tw = normWords(s), iw = normWords(rawIn);
   const right = tw.length===iw.length && tw.every((w,i)=>w===iw[i]);
   if(right) dz.ok++;
+  if(!right){ dzMistakes.add(s); saveDzMistakes(); }
+  if(dz.review && right){ dzMistakes.delete(s); saveDzMistakes(); }
   const words = tw.map((w,i)=>`<span class="dw${iw[i]===w?" ok":" bad"}">${esc(w)}</span>`).join(" ");
-  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, 3))}</div>
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.dictQ(dz.idx+1, dz.order.length))}</div>
     <div class="${right?"fb-ok":"fb-bad"}">${right?"✓":"✗"} ${esc(right?t.dictCorrect:t.dictWrong)}</div>
     <div class="alabel">${esc(t.dictRight)}</div><p class="dwords">${words}</p>
     ${rawIn.trim()?`<div class="alabel">${esc(t.dictYour)}</div><p class="note">“${esc(rawIn.trim())}”</p>`:""}
     <div class="center"><button class="btn coral" id="dzNext">${esc(t.dictNext)}</button></div></div>`;
-  el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=3?renderDictDone():renderDictQ(); };
+  el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
 function renderDictDone(){
-  const t = T(), el = document.getElementById("v-english"), pass = dz.ok>=1;
+  const t = T(), el = document.getElementById("v-english");
+  const pass = dz.review ? dzMistakes.size===0 : dz.ok>=1;
+  const reviewMsg = dz.review ? (dzMistakes.size===0 ? t.clearedAll : t.stillLeft(dzMistakes.size)) : null;
   el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
-    <h2>${esc(t.dictDone)}</h2><p style="color:var(--muted)">${esc(t.dictScore(dz.ok))}</p>
-    <p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>
-    <button class="btn coral" id="dzAgain">${esc(t.intAgain)}</button>
+    <h2>${esc(t.dictDone)}</h2><p style="color:var(--muted)">${esc(t.dictScore(dz.ok, dz.order.length))}</p>
+    ${reviewMsg?`<p class="${dzMistakes.size===0?"fb-ok":"fb-bad"}">${esc(reviewMsg)}</p>`
+      :`<p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>`}
+    ${dz.review&&dzMistakes.size?`<button class="btn coral" id="dzAgain2">${esc(t.reviewBtn(dzMistakes.size))}</button>`:`<button class="btn coral" id="dzAgain">${esc(t.intAgain)}</button>`}
     <div><button class="btn ghost" id="dzBack">← ${esc(t.writingTitle)}</button></div></div>`;
-  el.querySelector("#dzAgain").onclick = startDictation;
+  const dza = el.querySelector("#dzAgain"); if(dza) dza.onclick = startDictation;
+  const dza2 = el.querySelector("#dzAgain2"); if(dza2) dza2.onclick = startDzReview;
   el.querySelector("#dzBack").onclick = ()=>{ dz=null; renderEnglish(); };
 }
 
