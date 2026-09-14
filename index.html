@@ -56,6 +56,10 @@ a{color:var(--blue);}
 .search{width:100%; font:inherit; font-size:16px; padding:12px 16px; border-radius:14px;
   border:1px solid var(--line); background:#fff; margin:0 0 12px; color:var(--ink); box-sizing:border-box;}
 .search:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,.18);}
+.focuslist{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:12px;}
+.frow{display:flex; justify-content:space-between; gap:8px; align-items:baseline; font-weight:600;}
+.fbar{height:8px; border-radius:4px; background:#e8e0cd; margin-top:4px; overflow:hidden;}
+.fbar div{height:100%; border-radius:4px; background:linear-gradient(90deg,#e0643a,#f2b134);}
 .histlist{list-style:none; margin:0; padding:0;}
 .histlist li{padding:8px 2px; border-bottom:1px solid var(--line); font-size:16px;}
 .histlist li:last-child{border-bottom:0;}
@@ -234,6 +238,10 @@ en:{
   yourScore:"Your score", reviewMissed:"Review what you missed:", tryAgain:"Try again", backToSetup:"← Choose another test",
   searchPh:"🔍 Search questions or answers…",
   noResults:"No questions match your search.",
+  focusH:"🎯 Focus areas",
+  focusD:"Your weakest categories from recent practice \u2014 study these first.",
+  focusEmpty:"Practice a few rounds and we\u2019ll spot your focus areas here.",
+  focusTries:n=>n+" tries",
   historyH:"Your practice history", historyEmpty:"No practice tests yet — your results will appear here.",
   reviewBtn:(n)=>`🔁 Review mistakes (${n})`,
   reviewIntro:"Questions you missed before. Tap “I knew it” to clear one from this list.",
@@ -334,6 +342,10 @@ es:{
   yourScore:"Tu puntaje", reviewMissed:"Repasa lo que fallaste:", tryAgain:"Intentar de nuevo", backToSetup:"← Elige otro examen",
   searchPh:"🔍 Buscar preguntas o respuestas…",
   noResults:"Ninguna pregunta coincide con tu búsqueda.",
+  focusH:"🎯 Áreas de enfoque",
+  focusD:"Tus categorías más débiles en la práctica reciente — estudia estas primero.",
+  focusEmpty:"Practica unas rondas y aquí mostraremos tus áreas de enfoque.",
+  focusTries:n=>n+" intentos",
   historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía — tus resultados aparecerán aquí.",
   reviewBtn:(n)=>`🔁 Repasar errores (${n})`,
   reviewIntro:"Preguntas que fallaste antes. Toca «La sabía» para quitar una de esta lista.",
@@ -591,6 +603,28 @@ function answerHTML(q){
 
 /* ---------- practice ---------- */
 let pz = null;
+function catLabel(enCat){
+  const q = Q().find(x=>x.cat===enCat);
+  return q ? (lang==="es" ? q.cat_es : q.cat) : enCat;
+}
+function focusHTML(){
+  const t = T(), bank = filed==="before"?"08":"25";
+  const agg = {};
+  history.filter(h=>h.bank===bank && h.cats).forEach(h=>{
+    Object.entries(h.cats).forEach(([c,v])=>{
+      agg[c] = agg[c] || {r:0,w:0}; agg[c].r += v.r||0; agg[c].w += v.w||0;
+    });
+  });
+  const rows = Object.entries(agg)
+    .map(([c,v])=>({c, n:v.r+v.w, acc:v.r/(v.r+v.w)}))
+    .filter(r=>r.n>=3).sort((a,b)=>a.acc-b.acc).slice(0,5);
+  if(!rows.length) return `<p class="note">${esc(t.focusEmpty)}</p>`;
+  return `<p class="note">${esc(t.focusD)}</p><ul class="focuslist">` + rows.map(r=>{
+    const pct = Math.round(r.acc*100);
+    return `<li><div class="frow"><span>${esc(catLabel(r.c))}</span><span class="note">${pct}% · ${esc(t.focusTries(r.n))}</span></div>
+      <div class="fbar" aria-hidden="true"><div style="width:${pct}%"></div></div></li>`;
+  }).join("") + `</ul>`;
+}
 function historyHTML(){
   const t = T();
   if(!history.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
@@ -615,6 +649,7 @@ function renderPractice(){
       ${mcount?`<button class="btn big gold" data-p="review" style="margin-top:10px">${esc(typeof t.reviewBtn==="function"?t.reviewBtn(mcount):t.reviewBtn)}</button>
       <p class="note">${esc(t.reviewIntro)}</p>`:""}
     </div>
+    <div class="card"><h2>${esc(t.focusH)}</h2>${focusHTML()}</div>
     <div class="card"><h2>${esc(t.historyH)}</h2>${historyHTML()}</div>`;
     return;
   }
@@ -649,13 +684,14 @@ function startPractice(mode, isMock){
   const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
   const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
   const maxWrong = review ? total+1 : (senior?5:(before?5:9));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], done:false, senior, review, recorded:false, mock:!!isMock};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, recorded:false, mock:!!isMock};
   renderPractice();
 }
 function practiceAnswer(ok){
   const q = pz.order[pz.idx];
-  if(ok){ pz.right++; if(pz.review){ mistakes.delete(qkey(q.n)); saveMistakes(); } }
-  else { pz.wrong++; pz.missed.push(q); }
+  const cr = (pz.catRes[q.cat] = pz.catRes[q.cat] || {r:0,w:0});
+  if(ok){ pz.right++; cr.r++; if(pz.review){ mistakes.delete(qkey(q.n)); saveMistakes(); } }
+  else { pz.wrong++; cr.w++; pz.missed.push(q); }
   pz.idx++;
   const finished = pz.review ? pz.idx>=pz.order.length
     : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
@@ -669,7 +705,7 @@ function renderPracticeDone(el){
     pz.recorded = true;
     history.push({d:new Date().toISOString().slice(0,10),
       mode: pz.review?"review":(pz.senior?"senior":"std"),
-      right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25"});
+      right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
     saveHistory();
     pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
   }
