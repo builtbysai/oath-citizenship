@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Oath — Study for U.S. Citizenship</title>
+<style>
+:root{
+  --navy:#1b2f4b; --navy-deep:#12233a; --cream:#faf6ec; --paper:#fffdf7;
+  --gold:#b08a2e; --gold-soft:#efe3c2; --ink:#232b36; --muted:#5f6c7e;
+  --line:#e4dabd; --red:#a83a2a; --green:#2c7a4b; --blue:#2a5f9e;
+  --radius:14px; --shadow:0 2px 10px rgba(27,47,75,.08);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--cream); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px; line-height:1.5; padding-bottom:92px;}
+h1,h2,h3,.serif{font-family:Georgia,"Times New Roman",serif;}
+header.top{position:sticky; top:0; z-index:50; background:linear-gradient(180deg,var(--navy-deep),var(--navy));
+  color:#fff; padding:14px 18px 12px; box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.top-inner{max-width:860px; margin:0 auto; display:flex; align-items:center; gap:12px;}
+.emblem{width:44px; height:44px; flex:0 0 44px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #d9b64a, var(--gold) 70%);
+  display:flex; align-items:center; justify-content:center; font-size:24px; color:#12233a;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);}
+.top h1{font-size:22px; margin:0; letter-spacing:.5px;}
+.top .sub{font-size:12.5px; color:#d8e2f0; margin:1px 0 0;}
+.lang-toggle{margin-left:auto; display:flex; background:rgba(255,255,255,.14); border-radius:999px; padding:3px;}
+.lang-toggle button{border:0; background:transparent; color:#fff; font-size:14px; font-weight:700;
+  padding:7px 14px; border-radius:999px; cursor:pointer;}
+.lang-toggle button.on{background:#fff; color:var(--navy-deep);}
+main{max-width:860px; margin:0 auto; padding:16px 14px 30px;}
+.view{display:none;} .view.on{display:block; animation:fade .25s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+.card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px; margin:0 0 14px;}
+.card h2{margin:0 0 8px; font-size:20px; color:var(--navy);}
+.card h3{margin:14px 0 6px; font-size:16px; color:var(--navy);}
+.card p{margin:8px 0;}
+.filing{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+.filing button{flex:1 1 200px; border:2px solid var(--line); background:#fff; border-radius:12px;
+  padding:12px; font-size:15px; font-weight:600; color:var(--navy); cursor:pointer;}
+.filing button.on{border-color:var(--gold); background:#fdf8ea; box-shadow:0 0 0 1px var(--gold);}
+.note{font-size:13.5px; color:var(--muted);}
+.warnbox{border:1px solid #d9a49a; background:#fdf0ec; border-radius:10px; padding:10px 12px;
+  font-size:14px; margin:10px 0;}
+.warnbox b{color:var(--red);}
+.goldbox{border:1px solid var(--gold-soft); background:#fdf8ea; border-radius:10px; padding:10px 12px; font-size:14px; margin:10px 0;}
+a{color:var(--blue);}
+.chips{display:flex; gap:8px; overflow-x:auto; padding:4px 2px 10px; -webkit-overflow-scrolling:touch;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto; border:1px solid var(--line); background:#fff; border-radius:999px;
+  padding:8px 14px; font-size:14px; font-weight:600; color:var(--navy); cursor:pointer; white-space:nowrap;}
+.chip.on{background:var(--navy); color:#fff; border-color:var(--navy);}
+.qcard{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); margin:0 0 12px; overflow:hidden;}
+.qhead{display:flex; align-items:flex-start; gap:10px; padding:14px 14px 12px; cursor:pointer;}
+.qnum{flex:0 0 auto; width:34px; height:34px; border-radius:50%; background:var(--navy); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;}
+.qnum.star{background:var(--gold);}
+.qtext{font-size:17px; font-weight:600; color:var(--ink); flex:1;}
+.qmeta{display:flex; gap:6px; align-items:center; margin-top:6px; flex-wrap:wrap;}
+.tag{font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; letter-spacing:.3px;}
+.tag.cat{background:#e9eef5; color:var(--navy);}
+.tag.star65{background:var(--gold-soft); color:#7a5f16;}
+.tag.varies{background:#fbe3dc; color:var(--red);}
+.qactions{display:flex; gap:8px; padding:0 14px 6px;}
+.iconbtn{border:1px solid var(--line); background:#fff; border-radius:10px; padding:8px 12px;
+  font-size:14px; cursor:pointer; color:var(--navy); font-weight:600;}
+.iconbtn:active{transform:scale(.96);}
+.iconbtn.known-on{background:#e6f2ea; border-color:var(--green); color:var(--green);}
+.qbody{display:none; border-top:1px dashed var(--line); padding:12px 14px 14px; background:#fffdf4;}
+.qcard.open .qbody{display:block;}
+.qbody ul{margin:6px 0 4px; padding-left:20px;}
+.qbody li{margin:5px 0; font-size:15.5px;}
+.qbody .alabel{font-size:12.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px;}
+nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(--paper);
+  border-top:1px solid var(--line); box-shadow:0 -2px 12px rgba(27,47,75,.1);
+  padding:6px 4px calc(8px + env(safe-area-inset-bottom));}
+.tabs-inner{max-width:860px; margin:0 auto; display:flex;}
+.tab{flex:1; border:0; background:none; cursor:pointer; padding:8px 2px 6px; color:var(--muted);
+  font-size:11px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:2px;}
+.tab .ti{font-size:21px;}
+.tab.on{color:var(--navy);}
+.tab.on .ti{transform:scale(1.12);}
+.btn{display:inline-block; border:0; border-radius:12px; padding:13px 22px; font-size:16px; font-weight:700;
+  cursor:pointer; background:var(--navy); color:#fff; margin:6px 6px 6px 0;}
+.btn.gold{background:var(--gold); color:#12233a;}
+.btn.ghost{background:#fff; color:var(--navy); border:2px solid var(--line);}
+.btn:active{transform:scale(.97);}
+.btn.big{width:100%; font-size:17px; padding:15px;}
+.progress{height:10px; background:#e8e2cf; border-radius:999px; overflow:hidden; margin:10px 0;}
+.progress > div{height:100%; background:linear-gradient(90deg,var(--gold),#d9b64a); border-radius:999px; transition:width .3s;}
+.scorebar{display:flex; gap:10px; margin:12px 0; flex-wrap:wrap;}
+.scorepill{flex:1 1 120px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px; text-align:center;}
+.scorepill b{display:block; font-size:24px;}
+.scorepill.ok b{color:var(--green);} .scorepill.bad b{color:var(--red);}
+.scorepill span{font-size:12.5px; color:var(--muted);}
+.result{font-size:26px; font-weight:800; text-align:center; margin:8px 0;}
+.result.pass{color:var(--green);} .result.fail{color:var(--red);}
+.vocabchips{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
+.vchip{border:1px solid var(--line); background:#fff; border-radius:10px; padding:9px 13px;
+  font-size:15px; cursor:pointer; font-weight:600; color:var(--navy);}
+.vchip:active{background:var(--gold-soft);}
+ol.steps{margin:8px 0; padding:0; list-style:none; counter-reset:st;}
+ol.steps li{counter-increment:st; position:relative; padding:12px 12px 12px 52px; margin:0 0 10px;
+  background:var(--paper); border:1px solid var(--line); border-radius:12px;}
+ol.steps li::before{content:counter(st); position:absolute; left:12px; top:12px; width:30px; height:30px;
+  border-radius:50%; background:var(--navy); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:15px;}
+ol.steps li b{display:block; color:var(--navy); margin-bottom:2px;}
+table.fees{width:100%; border-collapse:collapse; margin:8px 0; font-size:15px;}
+table.fees td, table.fees th{border:1px solid var(--line); padding:10px; text-align:left;}
+table.fees th{background:#f3ecda; color:var(--navy);}
+.exgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+@media(max-width:560px){.exgrid{grid-template-columns:1fr;}}
+.excard{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px;}
+.excard b{color:var(--navy); display:block; margin-bottom:4px; font-size:15px;}
+.excard p{margin:4px 0; font-size:13.5px; color:var(--muted);}
+.reslist{list-style:none; margin:0; padding:0;}
+.reslist li{margin:0 0 10px; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+.reslist a{font-weight:700; font-size:15.5px; text-decoration:none;}
+.reslist a:hover{text-decoration:underline;}
+.reslist p{margin:4px 0 0; font-size:13.5px; color:var(--muted);}
+footer.disc{max-width:860px; margin:0 auto; padding:6px 18px 20px; font-size:12.5px; color:var(--muted);}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);}
+.pill-row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+select,input[type=text]{font-size:16px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#fff; width:100%;}
+.missed{border-left:4px solid var(--red); padding:10px 12px; margin:0 0 10px; background:#fff; border-radius:0 10px 10px 0;}
+.missed .mq{font-weight:700;}
+.missed .ma{color:var(--muted); font-size:14px;}
+@media(min-width:700px){
+  .top h1{font-size:26px;}
+  .qtext{font-size:18px;}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="emblem" aria-hidden="true">★</div>
+    <div><h1>Oath</h1><p class="sub" id="appSub">Study for U.S. Citizenship</p></div>
+    <div class="lang-toggle" role="group" aria-label="Language / Idioma">
+      <button id="langEn" class="on">EN</button><button id="langEs">ES</button>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="view on" id="v-study"></section>
+  <section class="view" id="v-practice"></section>
+  <section class="view" id="v-english"></section>
+  <section class="view" id="v-process"></section>
+  <section class="view" id="v-resources"></section>
+</main>
+<nav class="tabs"><div class="tabs-inner" id="tabs"></div></nav>
+<footer class="disc" id="disclaimer"></footer>
+<script>/*__DATA_JS__*/</script>
+<script>/*__VOCAB_JS__*/</script>
+<script>
+/*__APP_JS__*/
+</script>
+</body>
+</html>
