@@ -48,6 +48,13 @@ en:{
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
   dictRight:"The sentence was:", dictYour:"You wrote:",
   dictDone:"Dictation complete!", dictScore:(s)=>`${s} of 3 correct`,
+  readH:"Reading practice",
+  readD:"Like the real test: read <b>1 of 3</b> sentences aloud so the officer can understand every word. Read each sentence out loud, then tap honestly.",
+  readStart:"Start reading practice", readAloud:"🔊 Hear it first",
+  readQ:(a,b)=>`Sentence ${a} of ${b}`,
+  readOk:"I read it correctly ✓", readNo:"I missed some words ✗",
+  readDone:"Reading practice complete!", readScore:(s)=>`${s} of 3 read correctly`,
+  readHonest:"Be honest with yourself — at the real interview, the officer decides.",
   intTitle:"Interview questions",
   intIntro:"At your interview, the officer asks these personal questions from <b>Part 9 of Form N-400</b> (edition 01/20/25). Most are answered “No” — the last ones, about the Oath, are answered “Yes”. Always answer truthfully.",
   intSource:"Source: official Form N-400, Part 9. Spanish is a study aid only.",
@@ -123,6 +130,13 @@ es:{
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
   dictRight:"La frase era:", dictYour:"Escribiste:",
   dictDone:"¡Dictado completado!", dictScore:(s)=>`${s} de 3 correctas`,
+  readH:"Práctica de lectura",
+  readD:"Como en el examen real: lee <b>1 de 3</b> oraciones en voz alta para que el oficial entienda cada palabra. Lee cada oración en voz alta y luego toca con honestidad.",
+  readStart:"Empezar la práctica de lectura", readAloud:"🔊 Escucharla primero",
+  readQ:(a,b)=>`Oración ${a} de ${b}`,
+  readOk:"La leí bien ✓", readNo:"Me equivoqué en algunas palabras ✗",
+  readDone:"¡Práctica de lectura completada!", readScore:(s)=>`${s} de 3 leídas bien`,
+  readHonest:"Sé honesto contigo mismo — en la entrevista real, el oficial decide.",
   intTitle:"Preguntas de la entrevista",
   intIntro:"En tu entrevista, el oficial hace estas preguntas personales de la <b>Parte 9 del Formulario N-400</b> (edición 01/20/25). La mayoría se responden «No» — las últimas, sobre el juramento, se responden «Sí». Responde siempre con la verdad.",
   intSource:"Fuente: Formulario oficial N-400, Parte 9. El español es solo ayuda para estudiar.",
@@ -411,8 +425,41 @@ function renderEnglish(){
   </div>
   <div class="card"><h2>🎧 ${esc(t.dictH)}</h2><p>${t.dictD}</p>
     <div class="center"><button class="btn coral" id="dictStart">${esc(t.dictStart)}</button></div>
+  </div>
+  <div class="card"><h2>📢 ${esc(t.readH)}</h2><p>${t.readD}</p>
+    <div class="center"><button class="btn coral" id="readStart">${esc(t.readStart)}</button></div>
   </div>`;
   el.querySelector("#dictStart").onclick = startDictation;
+  el.querySelector("#readStart").onclick = startReadPractice;
+}
+/* ---------- reading practice ---------- */
+let rp = null;
+function startReadPractice(){
+  rp = { order:[...READ_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0 };
+  renderReadQ();
+}
+function renderReadQ(){
+  const t = T(), el = document.getElementById("v-english"), s = rp.order[rp.idx];
+  el.innerHTML = `<div class="card"><div class="note">${esc(t.readQ(rp.idx+1, 3))}</div>
+    <div class="bigq">“${esc(s)}”</div>
+    <div class="center"><button class="iconbtn" id="rpHear">${esc(t.readAloud)}</button></div>
+    <p class="note">${esc(t.readHonest)}</p>
+    <div class="ynrow"><button class="btn big ghost" id="rpOk">${esc(t.readOk)}</button>
+    <button class="btn big ghost" id="rpNo">${esc(t.readNo)}</button></div></div>`;
+  el.querySelector("#rpHear").onclick = ()=>speak(s);
+  el.querySelector("#rpOk").onclick = ()=>{ rp.ok++; rpNext(); };
+  el.querySelector("#rpNo").onclick = rpNext;
+}
+function rpNext(){ rp.idx++; rp.idx>=3?renderReadDone():renderReadQ(); }
+function renderReadDone(){
+  const t = T(), el = document.getElementById("v-english"), pass = rp.ok>=1;
+  el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
+    <h2>${esc(t.readDone)}</h2><p style="color:var(--muted)">${esc(t.readScore(rp.ok))}</p>
+    <p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>
+    <button class="btn coral" id="rpAgain">${esc(t.intAgain)}</button>
+    <div><button class="btn ghost" id="rpBack">← ${esc(t.writingTitle)}</button></div></div>`;
+  el.querySelector("#rpAgain").onclick = startReadPractice;
+  el.querySelector("#rpBack").onclick = ()=>{ rp=null; renderEnglish(); };
 }
 /* ---------- dictation ---------- */
 let dz = null;
