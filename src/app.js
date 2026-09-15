@@ -35,6 +35,7 @@ en:{
   focusD:"Your weakest categories from recent practice \u2014 study these first.",
   focusEmpty:"Practice a few rounds and we\u2019ll spot your focus areas here.",
   focusTries:n=>n+" tries",
+  weakBtn:"🎯 Practice my weak spots",
   historyH:"Your practice history", historyEmpty:"No practice tests yet — your results will appear here.",
   reviewBtn:(n)=>`🔁 Review mistakes (${n})`,
   reviewIntro:"Questions you missed before. Tap “I knew it” to clear one from this list.",
@@ -141,6 +142,7 @@ es:{
   focusD:"Tus categorías más débiles en la práctica reciente — estudia estas primero.",
   focusEmpty:"Practica unas rondas y aquí mostraremos tus áreas de enfoque.",
   focusTries:n=>n+" intentos",
+  weakBtn:"🎯 Practicar mis áreas débiles",
   historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía — tus resultados aparecerán aquí.",
   reviewBtn:(n)=>`🔁 Repasar errores (${n})`,
   reviewIntro:"Preguntas que fallaste antes. Toca «La sabía» para quitar una de esta lista.",
@@ -424,30 +426,34 @@ function catLabel(enCat){
   const q = Q().find(x=>x.cat===enCat);
   return q ? (lang==="es" ? q.cat_es : q.cat) : enCat;
 }
-function focusHTML(){
-  const t = T(), bank = filed==="before"?"08":"25";
+function weakestCats(){
+  const bank = filed==="before"?"08":"25";
   const agg = {};
   history.filter(h=>h.bank===bank && h.cats).forEach(h=>{
     Object.entries(h.cats).forEach(([c,v])=>{
       agg[c] = agg[c] || {r:0,w:0}; agg[c].r += v.r||0; agg[c].w += v.w||0;
     });
   });
-  const rows = Object.entries(agg)
+  return Object.entries(agg)
     .map(([c,v])=>({c, n:v.r+v.w, acc:v.r/(v.r+v.w)}))
     .filter(r=>r.n>=3).sort((a,b)=>a.acc-b.acc).slice(0,5);
+}
+function focusHTML(){
+  const t = T(), rows = weakestCats();
   if(!rows.length) return `<p class="note">${esc(t.focusEmpty)}</p>`;
   return `<p class="note">${esc(t.focusD)}</p><ul class="focuslist">` + rows.map(r=>{
     const pct = Math.round(r.acc*100);
     return `<li><div class="frow"><span>${esc(catLabel(r.c))}</span><span class="note">${pct}% · ${esc(t.focusTries(r.n))}</span></div>
       <div class="fbar" aria-hidden="true"><div style="width:${pct}%"></div></div></li>`;
-  }).join("") + `</ul>`;
+  }).join("") + `</ul>
+  <div class="center" style="margin-top:12px"><button class="btn coral" id="weakBtn">${esc(t.weakBtn)}</button></div>`;
 }
 function historyHTML(){
   const t = T();
   if(!history.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
   return `<ul class="histlist">` + history.slice(-5).reverse().map(h=>{
     const dot = h.pass ? "🟢" : "🔴";
-    const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : "▶";
+    const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : h.mode==="weak" ? "🎯" : "▶";
     const bank = h.bank==="08" ? "2008" : h.bank==="25" ? "2025" : "";
     return `<li>${dot} ${mode} <b>${h.right}/${h.total}</b> <span class="note">${bank}${bank?" · ":""}${esc(h.d)}</span></li>`;
   }).join("") + `</ul>`;
@@ -468,6 +474,7 @@ function renderPractice(){
     </div>
     <div class="card"><h2>${esc(t.focusH)}</h2>${focusHTML()}</div>
     <div class="card"><h2>${esc(t.historyH)}</h2>${historyHTML()}</div>`;
+  const wb = el.querySelector("#weakBtn"); if(wb) wb.onclick = startWeakPractice;
     return;
   }
   if(pz.done){ renderPracticeDone(el); return; }
@@ -504,6 +511,23 @@ function startPractice(mode, isMock){
   pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, recorded:false, mock:!!isMock};
   renderPractice();
 }
+function drillCats(){
+  const rows = weakestCats();
+  const miss = rows.filter(r=>r.acc<1);
+  return (miss.length?miss:rows).map(r=>r.c);
+}
+function startWeakPractice(){
+  const weak = drillCats();
+  if(!weak.length) return;
+  const before = filed==="before";
+  let pool = Q().filter(q=>weak.includes(q.cat));
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  const total = Math.min(pool.length, before?10:20);
+  if(total<3) return;
+  const need = Math.min(before?6:12, Math.ceil(total*0.6));
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong:total+1, missed:[], catRes:{}, done:false, senior:false, review:false, weak:true, recorded:false, mock:false};
+  renderPractice();
+}
 function practiceAnswer(ok){
   const q = pz.order[pz.idx];
   const cr = (pz.catRes[q.cat] = pz.catRes[q.cat] || {r:0,w:0});
@@ -522,7 +546,7 @@ function renderPracticeDone(el){
     pz.recorded = true;
     bumpStreak();
     history.push({d:new Date().toISOString().slice(0,10),
-      mode: pz.review?"review":(pz.senior?"senior":"std"),
+      mode: pz.review?"review":(pz.senior?"senior":(pz.weak?"weak":"std")),
       right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
     saveHistory();
     pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
@@ -543,7 +567,7 @@ function renderPracticeDone(el){
     <button class="btn big gold" id="retry">${esc(t.tryAgain)}</button>
     <button class="btn big ghost" id="newtest">${esc(t.backToSetup)}</button>
   </div>`;
-  el.querySelector("#retry").onclick = ()=>startPractice(pz.review?"review":(pz.senior?"senior":"std"));
+  el.querySelector("#retry").onclick = ()=>{ pz.weak?startWeakPractice():startPractice(pz.review?"review":(pz.senior?"senior":"std")); };
   el.querySelector("#newtest").onclick = ()=>{ pz=null; renderPractice(); };
 }
 
