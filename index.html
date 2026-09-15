@@ -262,6 +262,9 @@ en:{
   historyH:"Your practice history", historyEmpty:"No practice tests yet — your results will appear here.",
   reviewBtn:(n)=>`🔁 Review mistakes (${n})`,
   reviewIntro:"Questions you missed before. Tap “I knew it” to clear one from this list.",
+  dueBtn:(n)=>`Due for review (${n})`,
+  dueIntro:"Spaced review: these are due today. Get one right and it comes back later; get it right through all the rounds and it graduates. 🎓",
+  dueEmpty:"Nothing due for review — you're all caught up! 🎉",
   clearedAll:"All clear — no mistakes left! 🎉",
   stillLeft:(n)=>`${n} still need${n===1?"s":""} work — keep reviewing.`,
   readingTitle:"Reading", writingTitle:"Speaking, reading & writing",
@@ -376,6 +379,9 @@ es:{
   historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía — tus resultados aparecerán aquí.",
   reviewBtn:(n)=>`🔁 Repasar errores (${n})`,
   reviewIntro:"Preguntas que fallaste antes. Toca «La sabía» para quitar una de esta lista.",
+  dueBtn:(n)=>`Para repasar hoy (${n})`,
+  dueIntro:"Repaso espaciado: estos vencen hoy. Acierta y vuelve más tarde; acierta en todas las rondas y se gradúa. 🎓",
+  dueEmpty:"Nada que repasar — ¡estás al día! 🎉",
   clearedAll:"¡Todo claro — no quedan errores! 🎉",
   stillLeft:(n)=>`${n} aún necesita${n===1?"":"n"} trabajo — sigue repasando.`,
   readingTitle:"Lectura", writingTitle:"Hablar, leer y escribir",
@@ -476,6 +482,20 @@ const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
 const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
 const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,60)));
+/* spaced review: key -> {ivl: days, next: epoch ms due}. Intervals 1->3->7->14->30, then graduate. */
+let srs = JSON.parse(localStorage.getItem("oath_srs") || "{}");
+const saveSrs = () => localStorage.setItem("oath_srs", JSON.stringify(srs));
+const SRS_IVLS = [1,3,7,14,30];
+const srsGet = k => srs[k] || {ivl:1, next:0};
+const srsDue = k => srsGet(k).next <= Date.now();
+function srsOnMiss(k){ srs[k] = {ivl:1, next:Date.now()}; saveSrs(); }
+function srsOnRight(k){
+  const i = SRS_IVLS.indexOf(srsGet(k).ivl);
+  if(i >= SRS_IVLS.length-1){ mistakes.delete(k); delete srs[k]; }  /* graduated: learned */
+  else { const ivl = SRS_IVLS[i+1]; srs[k] = {ivl, next:Date.now()+ivl*864e5}; }
+  saveMistakes(); saveSrs();
+}
+function srsOnWrong(k){ srs[k] = {ivl:1, next:Date.now()}; saveSrs(); }
 let intMistakes = new Set(JSON.parse(localStorage.getItem("oath_int_mistakes") || "[]"));
 const saveIntMistakes = () => localStorage.setItem("oath_int_mistakes", JSON.stringify([...intMistakes].slice(0,40)));
 /* active question bank + namespaced per-bank progress keys ("08:"=2008 test, "25:"=2025 test) */
@@ -486,6 +506,9 @@ const qkey = n => (filed==="before"?"08":"25") + ":" + n;
   const k2 = mig(known), m2 = mig(mistakes);
   const same = (a,b) => a.size===b.size && [...a].every(k=>b.has(k));
   if(!same(k2,known) || !same(m2,mistakes)){ known=k2; mistakes=m2; saveKnown(); saveMistakes(); }
+  let srsTouch = false;
+  mistakes.forEach(k=>{ if(!srs[k]){ srs[k]={ivl:1,next:0}; srsTouch=true; } });
+  if(srsTouch) saveSrs();
 })();
 
 /* ---------- speech ---------- */
@@ -711,7 +734,7 @@ function historyHTML(){
   if(!history.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
   return `<ul class="histlist">` + history.slice(-5).reverse().map(h=>{
     const dot = h.pass ? "🟢" : "🔴";
-    const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : h.mode==="weak" ? "🎯" : "▶";
+    const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : h.mode==="due" ? "📅" : h.mode==="weak" ? "🎯" : "▶";
     const bank = h.bank==="08" ? "2008" : h.bank==="25" ? "2025" : "";
     return `<li>${dot} ${mode} <b>${h.right}/${h.total}</b> <span class="note">${bank}${bank?" · ":""}${esc(h.d)}</span></li>`;
   }).join("") + `</ul>`;
@@ -729,6 +752,9 @@ function renderPractice(){
       </div>
       ${mcount?`<button class="btn big gold" data-p="review" style="margin-top:10px">${esc(typeof t.reviewBtn==="function"?t.reviewBtn(mcount):t.reviewBtn)}</button>
       <p class="note">${esc(t.reviewIntro)}</p>`:""}
+      ${(()=>{ const d=[...mistakes].filter(k=>k.startsWith(bank)&&srsDue(k)).length;
+        return d?`<button class="btn big" data-p="due" style="margin-top:10px">📅 ${esc(typeof t.dueBtn==="function"?t.dueBtn(d):d)}</button>
+        <p class="note">${esc(t.dueIntro)}</p>`:`<p class="note">${esc(t.dueEmpty)}</p>`; })()}
     </div>
     <div class="card"><h2>${esc(t.focusH)}</h2>${focusHTML()}</div>
     <div class="card"><h2>${esc(t.historyH)}</h2>${historyHTML()}</div>`;
@@ -758,15 +784,15 @@ function renderPractice(){
   el.querySelector('[data-act="speak"]').onclick = ()=>speak(q.q[lang]);
 }
 function startPractice(mode, isMock){
-  const review = mode==="review", senior = mode==="senior", before = filed==="before";
+  const review = mode==="review"||mode==="due", due = mode==="due", senior = mode==="senior", before = filed==="before";
   let pool;
-  if(review) pool = Q().filter(q=>mistakes.has(qkey(q.n)));
+  if(review) pool = Q().filter(q=>mistakes.has(qkey(q.n)) && (!due || srsDue(qkey(q.n))));
   else pool = senior ? Q().filter(q=>q.star) : [...Q()];
   for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
   const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
   const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
   const maxWrong = review ? total+1 : (senior?5:(before?5:9));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, recorded:false, mock:!!isMock};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, due, recorded:false, mock:!!isMock};
   renderPractice();
 }
 function drillCats(){
@@ -789,8 +815,8 @@ function startWeakPractice(){
 function practiceAnswer(ok){
   const q = pz.order[pz.idx];
   const cr = (pz.catRes[q.cat] = pz.catRes[q.cat] || {r:0,w:0});
-  if(ok){ pz.right++; cr.r++; if(pz.review){ mistakes.delete(qkey(q.n)); saveMistakes(); } }
-  else { pz.wrong++; cr.w++; pz.missed.push(q); }
+  if(ok){ pz.right++; cr.r++; if(pz.review){ srsOnRight(qkey(q.n)); } }
+  else { pz.wrong++; cr.w++; pz.missed.push(q); if(pz.review){ srsOnWrong(qkey(q.n)); } }
   pz.idx++;
   const finished = pz.review ? pz.idx>=pz.order.length
     : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
@@ -804,10 +830,10 @@ function renderPracticeDone(el){
     pz.recorded = true;
     bumpStreak();
     history.push({d:new Date().toISOString().slice(0,10),
-      mode: pz.review?"review":(pz.senior?"senior":(pz.weak?"weak":"std")),
+      mode: pz.review?(pz.due?"due":"review"):(pz.senior?"senior":(pz.weak?"weak":"std")),
       right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
     saveHistory();
-    pz.missed.forEach(q=>mistakes.add(qkey(q.n))); saveMistakes();
+    pz.missed.forEach(q=>{ const k=qkey(q.n); mistakes.add(k); srsOnMiss(k); }); saveMistakes();
   }
   if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; startMockN400(); return; }
   const headMsg = pz.review
@@ -825,7 +851,7 @@ function renderPracticeDone(el){
     <button class="btn big gold" id="retry">${esc(t.tryAgain)}</button>
     <button class="btn big ghost" id="newtest">${esc(t.backToSetup)}</button>
   </div>`;
-  el.querySelector("#retry").onclick = ()=>{ pz.weak?startWeakPractice():startPractice(pz.review?"review":(pz.senior?"senior":"std")); };
+  el.querySelector("#retry").onclick = ()=>{ pz.weak?startWeakPractice():startPractice(pz.review?(pz.due?"due":"review"):(pz.senior?"senior":"std")); };
   el.querySelector("#newtest").onclick = ()=>{ pz=null; renderPractice(); };
 }
 
