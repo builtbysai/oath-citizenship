@@ -178,6 +178,15 @@ select,input[type=text]{font-size:16px; padding:10px 12px; border:1px solid var(
   .top h1{font-size:26px;}
   .qtext{font-size:18px;}
 }
+.chk{display:flex; gap:10px; align-items:flex-start; padding:9px 10px; border:1px solid var(--line); border-radius:10px; margin:8px 0; cursor:pointer; background:#fff;}
+.chk input{position:absolute; opacity:0; pointer-events:none;}
+.chk .box{flex:0 0 22px; height:22px; border:2px solid #c9a227; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:800; margin-top:1px;}
+.chk.done .box{background:#2e7d32; border-color:#2e7d32;}
+.chk.done span:last-child{color:#6b7280; text-decoration:line-through;}
+.chk em{color:#9a7b2d; font-style:normal; font-size:12px;}
+.chkh{margin:14px 0 4px; font-size:15px;}
+.chkbar{height:10px; background:#eee; border-radius:999px; overflow:hidden; margin:10px 0 4px;}
+.chkfill{height:100%; background:linear-gradient(90deg,#c9a227,#2e7d32); border-radius:999px; transition:width .3s;}
 </style>
 </head>
 <body>
@@ -297,6 +306,13 @@ en:{
   expVariesNote:"Answer truthfully — it depends on your situation.",
   fNo:"Usually No", fYes:"Usually Yes", fDep:"Depends",
   intPracticeH:"Practice the interview", intPracticeD:"10 random questions · tap Yes or No, like the officer asks.",
+  checkTitle:"Interview-day checklist",
+  checkDocs:"Documents to bring",
+  checkDay:"On the day",
+  checkCond:"if applicable",
+  checkProgress:(n,t)=>`${n} of ${t} ready`,
+  checkReset:"Reset checklist",
+  checkNote:"Your appointment notice lists exactly what to bring for your case — when in doubt, bring the original plus a copy.",
   intStart:"Start practice",
   intQ:(a,b)=>`Question ${a} of ${b}`,
   intCorrect:"Correct ✓", intWrong:"Not quite ✗",
@@ -404,6 +420,13 @@ es:{
   expVariesNote:"Responde con la verdad — depende de tu situación.",
   fNo:"Normalmente No", fYes:"Normalmente Sí", fDep:"Depende",
   intPracticeH:"Practica la entrevista", intPracticeD:"10 preguntas al azar · toca Sí o No, como las hace el oficial.",
+  checkTitle:"Lista para el día de la entrevista",
+  checkDocs:"Documentos para llevar",
+  checkDay:"El día de la entrevista",
+  checkCond:"si aplica",
+  checkProgress:(n,t)=>`${n} de ${t} listos`,
+  checkReset:"Reiniciar lista",
+  checkNote:"Su notificación de cita indica exactamente qué llevar en su caso — ante la duda, lleve el original más una copia.",
   intStart:"Empezar a practicar",
   intQ:(a,b)=>`Pregunta ${a} de ${b}`,
   intCorrect:"Correcto ✓", intWrong:"Casi ✗",
@@ -640,6 +663,27 @@ function catLabel(enCat){
   const q = Q().find(x=>x.cat===enCat);
   return q ? (lang==="es" ? q.cat_es : q.cat) : enCat;
 }
+const CHECKLIST = [
+  {sec:"docs", id:"notice", en:"Interview appointment notice (Form I-797C)", es:"Notificación de cita para la entrevista (Formulario I-797C)"},
+  {sec:"docs", id:"greencard", en:"Green card (permanent resident card)", es:"Tarjeta de residencia permanente (green card)"},
+  {sec:"docs", id:"passport", en:"All passports — current and expired", es:"Todos los pasaportes — vigentes y vencidos"},
+  {sec:"docs", id:"photoid", en:"State photo ID (driver's license)", es:"Identificación con foto del estado (licencia de conducir)"},
+  {sec:"docs", id:"n400copy", en:"Copy of your filed N-400 and everything you submitted", es:"Copia de su N-400 presentado y todo lo que envió"},
+  {sec:"docs", id:"taxes", en:"Federal tax returns (last 3–5 years)", es:"Declaraciones de impuestos federales (últimos 3 a 5 años)"},
+  {sec:"docs", id:"birth", en:"Birth certificate (+ certified English translation if not in English)", es:"Acta de nacimiento (+ traducción certificada al inglés si no está en inglés)"},
+  {sec:"docs", id:"marriage", en:"Marriage certificate", es:"Acta de matrimonio", cond:1},
+  {sec:"docs", id:"divorce", en:"Divorce decrees / death certificates for prior marriages", es:"Sentencias de divorcio / actas de defunción de matrimonios anteriores", cond:1},
+  {sec:"docs", id:"spouse", en:"Spouse's proof of U.S. citizenship (if filing through marriage)", es:"Prueba de ciudadanía de su cónyuge (si solicita por matrimonio)", cond:1},
+  {sec:"docs", id:"address", en:"Proof of address (utility bill, lease, bank statement)", es:"Prueba de domicilio (factura de servicios, contrato de alquiler, estado de cuenta)"},
+  {sec:"docs", id:"court", en:"Court-certified arrest / court records", es:"Registros de arresto / judiciales certificados por el tribunal", cond:1},
+  {sec:"docs", id:"namechg", en:"Name-change documents (if requesting a name change)", es:"Documentos de cambio de nombre (si solicita un cambio de nombre)", cond:1},
+  {sec:"day", id:"early", en:"Arrive 15–30 minutes early", es:"Llegue 15–30 minutos temprano"},
+  {sec:"day", id:"security", en:"Pass security screening — bring only what you need", es:"Pase el control de seguridad — lleve solo lo necesario"},
+  {sec:"day", id:"oath", en:"You will be placed under oath — answer truthfully", es:"Estará bajo juramento — responda con la verdad"},
+  {sec:"day", id:"reviewn", en:"Re-read your N-400 answers before you go in", es:"Relea sus respuestas del N-400 antes de entrar"},
+];
+function loadCheck(){ try{ return new Set(JSON.parse(localStorage.getItem("oath_checklist")||"[]")); }catch(e){ return new Set(); } }
+function saveCheck(set){ localStorage.setItem("oath_checklist", JSON.stringify([...set])); }
 function weakestCats(){
   const bank = filed==="before"?"08":"25";
   const agg = {};
@@ -967,10 +1011,24 @@ function renderInterview(){
     <p>${t.intIntro}</p><p class="note">${esc(t.intSource)}</p></div>
     <div class="card"><h2>${esc(t.intPracticeH)}</h2><p class="note">${esc(t.intPracticeD)}</p>
     <div class="center"><button class="btn coral" id="intStart">${esc(t.intStart)}</button></div></div>
+    ${checkHTML()}
     ${intMistakes.size?`<div class="card"><div class="center"><button class="btn gold big" id="intReview">${esc(t.reviewBtn(intMistakes.size))}</button></div></div>`:""}
     <div class="chips">${chips}</div><div id="nqlist">${list.map(nqCardHTML).join("")}</div>`;
   el.querySelector("#intStart").onclick = startInterviewPractice;
   const ir = el.querySelector("#intReview"); if(ir) ir.onclick = startInterviewReview;
+}
+function checkHTML(){
+  const t=T(), done=loadCheck();
+  const item=c=>`<label class="chk${done.has(c.id)?" done":""}"><input type="checkbox" data-chk="${c.id}"${done.has(c.id)?" checked":""}><span class="box">✓</span><span>${esc(lang==="es"?c.es:c.en)}${c.cond?` <em>(${esc(t.checkCond)})</em>`:""}</span></label>`;
+  const docs=CHECKLIST.filter(c=>c.sec==="docs"), day=CHECKLIST.filter(c=>c.sec==="day");
+  const n=done.size, total=CHECKLIST.length;
+  return `<div class="card"><h2>🧳 ${esc(t.checkTitle)}</h2>
+    <p class="note">${esc(t.checkNote)}</p>
+    <div class="chkbar"><div class="chkfill" style="width:${Math.round(n/total*100)}%"></div></div>
+    <p class="note center">${esc(t.checkProgress(n,total))}</p>
+    <h3 class="chkh">${esc(t.checkDocs)}</h3>${docs.map(item).join("")}
+    <h3 class="chkh">${esc(t.checkDay)}</h3>${day.map(item).join("")}
+    <div class="center" style="margin-top:10px"><button class="btn ghost" id="chkReset">${esc(t.checkReset)}</button></div></div>`;
 }
 function startInterviewPractice(){
   ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,10), idx:0, ok:0, review:false };
@@ -1062,7 +1120,13 @@ function show(v){ curView=v; renderChrome();
   ({study:renderStudy,practice:renderPractice,interview:renderInterview,english:renderEnglish,process:renderProcess,resources:renderResources})[v]();
   window.scrollTo({top:0});
 }
+document.addEventListener("change", e=>{
+  const c=e.target.closest("[data-chk]"); if(!c) return;
+  const done=loadCheck(); c.checked?done.add(c.dataset.chk):done.delete(c.dataset.chk); saveCheck(done);
+  if(curView==="interview") renderInterview();
+});
 document.addEventListener("click", e=>{
+  if(e.target.id==="chkReset"){ saveCheck(new Set()); renderInterview(); return; }
   const tab = e.target.closest(".tab"); if(tab){ show(tab.dataset.v); return; }
   if(e.target.id==="langEn"){ lang="en"; localStorage.setItem("oath_lang",lang); show(curView); return; }
   if(e.target.id==="langEs"){ lang="es"; localStorage.setItem("oath_lang",lang); show(curView); return; }
