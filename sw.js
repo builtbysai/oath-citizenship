@@ -1,4 +1,11 @@
-/* Offline support: cache-first, network refreshes the cache. Bump CACHE to force an update. */
+/* Offline support for the Oath study app.
+   Strategy (no manual version bumps needed):
+   - Navigations / HTML documents: NETWORK FIRST, fall back to cache.
+     The app shell is always fresh when the user is online; the cached copy
+     keeps the app working fully offline.
+   - Static assets (icons, manifest): STALE-WHILE-REVALIDATE.
+     Serve the cached copy instantly, refresh it in the background.
+   - On activate: delete any caches from older versions. */
 const CACHE = 'oath-v1';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
@@ -13,17 +20,25 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request, { ignoreSearch: true }).then(
-      (hit) =>
-        hit ||
-        fetch(e.request)
-          .then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-            return res;
-          })
-          .catch(() => caches.match('index.html'))
-    )
-  );
+  const isDoc = e.request.mode === 'navigate' || e.request.destination === 'document';
+  e.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    if (isDoc) {
+      try {
+        const res = await fetch(e.request);
+        cache.put(e.request, res.clone());
+        return res;
+      } catch (err) {
+        const hit = await cache.match(e.request, { ignoreSearch: true });
+        return hit || cache.match('index.html');
+      }
+    }
+    const hit = await cache.match(e.request, { ignoreSearch: true });
+    const refresh = fetch(e.request)
+      .then((res) => { cache.put(e.request, res.clone()); return res; })
+      .catch(() => null);
+    if (hit) { e.waitUntil(refresh); return hit; }
+    const net = await refresh;
+    return net || cache.match('index.html');
+  })());
 });

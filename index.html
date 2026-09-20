@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#1b2f4b">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});}</script>
-<title>Oath — Study for U.S. Citizenship</title>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").then(function(r){try{r.update()}catch(e){}}).catch(function(){})});}</script>
+<title>Oath: Study for U.S. Citizenship</title>
 <style>
 :root{
   --navy:#1b2f4b; --navy-deep:#12233a; --cream:#faf6ec; --paper:#fffdf7;
@@ -117,6 +117,10 @@ nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(-
 .btn{display:inline-block; border:0; border-radius:12px; padding:13px 22px; font-size:16px; font-weight:700;
   cursor:pointer; background:var(--navy); color:#fff; margin:6px 6px 6px 0;}
 .btn.gold{background:var(--gold); color:#12233a;}
+.btn.coral{background:#c26a4d; color:#fff;}
+.center{text-align:center;}
+.starscreen{text-align:center;}
+.starscreen .big{font-size:54px; line-height:1.2;}
 .mockbanner{text-align:center;font-weight:800;background:var(--gold-soft);border:2px solid var(--gold);border-radius:12px;padding:8px 10px;margin-bottom:12px;color:#5b4413;}
 .mockrows{max-width:340px;margin:14px auto;text-align:left;}
 .mockrow{display:flex;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px dashed var(--line);}
@@ -228,12 +232,12 @@ en:{
   tabs:[["study","📖","Study"],["practice","✍️","Practice"],["interview","🎤","Interview"],["english","🗣️","English"],["process","📋","Process"],["resources","🔗","Resources"]],
   filingTitle:"When did you file Form N-400?",
   filedBefore:"Before Oct 20, 2025", filedAfter:"On / after Oct 20, 2025",
-  testAfterHTML:"<b>You take the 2025 civics test:</b> 128 study questions. The officer asks up to 20 — you need <b>12 correct</b> to pass (it stops early at 9 wrong).",
-  testBeforeHTML:"<b>You take the 2008 civics test:</b> all 100 questions are in this app below. The officer asks up to 10 — you need <b>6 correct</b> to pass.",
+  testAfterHTML:"<b>You take the 2025 civics test:</b> 128 study questions. The officer asks up to 20. You need <b>12 correct</b> to pass (it stops early at 9 wrong).",
+  testBeforeHTML:"<b>You take the 2008 civics test:</b> all 100 questions are in this app below. The officer asks up to 10. You need <b>6 correct</b> to pass.",
   testBeforeLink:"Official 2008 questions (USCIS text)",
   studyTitle:"Study the questions", all:"All", star65:"★ 65/20",
   tapReveal:"Tap a question to see the answer. Tap 🔊 to hear it read aloud.",
-  answersLabel:"Accepted answers — any one is correct",
+  answersLabel:"Accepted answers: any one is correct",
   knowIt:"✓ Know it", knownCount:(a,b)=>`${a} of ${b} marked known`,
   listen:"🔊 Listen",
   variesTitle:"⚠ This answer changes",
@@ -242,38 +246,38 @@ en:{
   variesLinkLabel:{senators:"Find your senators → senate.gov",representative:"Find your representative → house.gov",governor:"Find your governor → usa.gov","state capital":"State capitals → usa.gov",justices:"Number of justices → uscis.gov/testupdates",office:"Current officeholders → uscis.gov/testupdates"},
   practiceTitle:"Practice test", start:"Start",
   practiceIntro:"Like the real interview: questions are asked out loud. Read each question, say your answer out loud, then check yourself honestly.",
-  testStd:"2025 test — standard", testStdDesc:"Up to 20 questions · 12 correct to pass · stops at 9 wrong",
-  testStd08:"2008 test — standard", testStdDesc08:"Up to 10 questions · 6 correct to pass · stops at 5 wrong",
-  practiceIntro08:"Like the real 2008 interview: the officer asks up to 10 questions — answer 6 correctly to pass. Read each question, say your answer out loud, then check yourself honestly.",
+  testStd:"2025 test: standard", testStdDesc:"Up to 20 questions · 12 correct to pass · stops at 9 wrong",
+  testStd08:"2008 test: standard", testStdDesc08:"Up to 10 questions · 6 correct to pass · stops at 5 wrong",
+  practiceIntro08:"Like the real 2008 interview: the officer asks up to 10 questions. Answer 6 correctly to pass. Read each question, say your answer out loud, then check yourself honestly.",
   testSenior:"65/20 special", testSeniorDesc:"10 questions from the ★ set · 6 correct to pass",
-  oldTestNote:"Filed before Oct 20, 2025? You take the 2008 test — practice with the official materials:",
+  oldTestNote:"Filed before Oct 20, 2025? You take the 2008 test. Practice with the official materials:",
   showAnswer:"Show answer", iKnew:"✓ I knew it", iMissed:"✗ I missed it",
   qNum:(a)=>`Question ${a}`,
   correctToPass:(n)=>`${n} correct to pass`, wrongs:(n)=>`${n} wrong`,
-  passMsg:"You passed! 🎉", failMsg:"Not yet — keep studying 💪",
+  passMsg:"You passed! 🎉", failMsg:"Not yet. Keep studying 💪",
   yourScore:"Your score", reviewMissed:"Review what you missed:", tryAgain:"Try again", backToSetup:"← Choose another test",
   searchPh:"🔍 Search questions or answers…",
   noResults:"No questions match your search.",
   focusH:"🎯 Focus areas",
-  focusD:"Your weakest categories from recent practice \u2014 study these first.",
+  focusD:"Your weakest categories from recent practice. Study these first.",
   focusEmpty:"Practice a few rounds and we\u2019ll spot your focus areas here.",
   focusTries:n=>n+" tries",
   weakBtn:"🎯 Practice my weak spots",
-  historyH:"Your practice history", historyEmpty:"No practice tests yet — your results will appear here.",
+  historyH:"Your practice history", historyEmpty:"No practice tests yet. Your results will appear here.",
   reviewBtn:(n)=>`🔁 Review mistakes (${n})`,
-  reviewIntro:"Questions you missed before. “I knew it” moves one to a later review round — get it right through every round and it graduates off the list. 🎓",
+  reviewIntro:"Questions you missed before. “I knew it” moves one to a later review round. Get it right through every round and it graduates off the list. 🎓",
   dueBtn:(n)=>`Due for review (${n})`,
   dueIntro:"Spaced review: these are due today. Get one right and it comes back later; get it right through all the rounds and it graduates. 🎓",
-  dueEmpty:"Nothing due for review — you're all caught up! 🎉",
-  clearedAll:"All clear — no mistakes left! 🎉",
-  stillLeft:(n)=>`${n} still need${n===1?"s":""} work — keep reviewing.`,
+  dueEmpty:"Nothing due for review. You're all caught up! 🎉",
+  clearedAll:"All clear! No mistakes left! 🎉",
+  stillLeft:(n)=>`${n} still need${n===1?"s":""} work. Keep reviewing.`,
   readingTitle:"Reading", writingTitle:"Speaking, reading & writing",
-  speakH:"Speaking", speakP:"No separate test — the officer judges your spoken English during the interview. Understand the questions and answer in English.",
-  readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary — tap any word to hear it:",
-  writeP:"Write <b>1 of 3</b> sentences correctly as the officer dictates it. Study the official writing vocabulary — tap any word to hear it:",
+  speakH:"Speaking", speakP:"No separate test. The officer judges your spoken English during the interview. Understand the questions and answer in English.",
+  readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary. Tap any word to hear it:",
+  writeP:"Write <b>1 of 3</b> sentences correctly as the officer dictates it. Study the official writing vocabulary. Tap any word to hear it:",
   readVocab:"Reading vocabulary", writeVocab:"Writing vocabulary",
   dictH:"Dictation practice",
-  dictD:"Like the real test: the officer reads a sentence and you write it. Write <b>1 of 3</b> correctly to pass. These practice sentences use only the official writing vocabulary — USCIS does not publish the real test sentences.",
+  dictD:"Like the real test: the officer reads a sentence and you write it. Write <b>1 of 3</b> correctly to pass. These practice sentences use only the official writing vocabulary. USCIS does not publish the real test sentences.",
   dictStart:"Start dictation", dictPlay:"🔊 Play sentence", dictPh:"Type what you hear…",
   dictCheck:"Check", dictNext:"Next →", dictQ:(a,b)=>`Sentence ${a} of ${b}`,
   dictCorrect:"Correct! ✓", dictWrong:"Not quite ✗",
@@ -285,14 +289,14 @@ en:{
   cdD:"Set your interview date and we\u2019ll count down with a study pace for the days left.",
   cdSet:"Set date", cdChange:"Change", cdClear:"Clear",
   cdDays:n=>n===1?"1 day left":n+" days left",
-  cdToday:"Today\u2019s the day \u2014 good luck! \ud83c\udf40",
+  cdToday:"Today\u2019s the day! Good luck! \ud83c\udf40",
   cdPast:"How did it go? Clear the date to start fresh.",
   cdPace:n=>n>30?"Steady pace: one practice round a day keeps you sharp.":n>7?"Build momentum: one full practice plus mistake review every day.":"Final stretch: one mock interview every day this week.",
   mockH:"Full mock interview", mockD:"Simulate the real appointment, start to finish: reading, dictation, civics, then interview questions.",
   mockStart:"Start mock interview", mockPhase:(n)=>`🎭 Mock interview · part ${n} of 4`,
   mockRead:"Reading", mockDict:"Dictation", mockCiv:"Civics", mockN400:"Interview questions",
   mockSumH:"Mock interview results",
-  mockPassAll:"You passed every scored part — you're ready! 🎉",
+  mockPassAll:"You passed every scored part. You're ready! 🎉",
   mockFailSome:"Keep practicing the parts marked ✗, then run it again.",
   readH:"Reading practice",
   readD:"Like the real test: read <b>1 of 3</b> sentences aloud so the officer can understand every word. Read each sentence out loud, then tap honestly.",
@@ -300,13 +304,13 @@ en:{
   readQ:(a,b)=>`Sentence ${a} of ${b}`,
   readOk:"I read it correctly ✓", readNo:"I missed some words ✗",
   readDone:"Reading practice complete!", readScore:(s)=>`${s} of 3 read correctly`,
-  readHonest:"Be honest with yourself — at the real interview, the officer decides.",
+  readHonest:"Be honest with yourself. At the real interview, the officer decides.",
   intTitle:"Interview questions",
-  intIntro:"At your interview, the officer asks these personal questions from <b>Part 9 of Form N-400</b> (edition 01/20/25). Most are answered “No” — the last ones, about the Oath, are answered “Yes”. Always answer truthfully.",
+  intIntro:"At your interview, the officer asks these personal questions from <b>Part 9 of Form N-400</b> (edition 01/20/25). Most are answered “No”. The last ones, about the Oath, are answered “Yes”. Always answer truthfully.",
   intSource:"Source: official Form N-400, Part 9. Spanish is a study aid only.",
   intMeaning:"What it means",
   expNo:"Usually “No”", expYes:"Usually “Yes”", expVaries:"Depends on you",
-  expVariesNote:"Answer truthfully — it depends on your situation.",
+  expVariesNote:"Answer truthfully. It depends on your situation.",
   fNo:"Usually No", fYes:"Usually Yes", fDep:"Depends",
   intPracticeH:"Practice the interview", intPracticeD:"10 random questions · tap Yes or No, like the officer asks.",
   checkTitle:"Interview-day checklist",
@@ -315,11 +319,11 @@ en:{
   checkCond:"if applicable",
   checkProgress:(n,t)=>`${n} of ${t} ready`,
   checkReset:"Reset checklist",
-  checkNote:"Your appointment notice lists exactly what to bring for your case — when in doubt, bring the original plus a copy.",
+  checkNote:"Your appointment notice lists exactly what to bring for your case. When in doubt, bring the original plus a copy.",
   intStart:"Start practice",
   intQ:(a,b)=>`Question ${a} of ${b}`,
   intCorrect:"Correct ✓", intWrong:"Not quite ✗",
-  intVariesFb:"This one depends on your situation — at the real interview, answer truthfully.",
+  intVariesFb:"This one depends on your situation. At the real interview, answer truthfully.",
   intDone:"Interview practice complete!", intScore:(s)=>`${s} of 10 correct`,
   intAgain:"Practice again", intNext:"Next →",
   procTitle:"The road to citizenship", eligH:"Who can apply (5-year path)",
@@ -329,28 +333,28 @@ en:{
   feesH:"Filing fees", feeRows:[["N-400 online","$710"],["N-400 by mail","$760"],["Reduced fee (paper only, income below 400% of poverty guidelines)","$380"]],
   feesNote:"Fees change over time. Always verify the current fee at uscis.gov before you file.",
   excH:"Exceptions",
-  excs:[["50/20","Age 50+ with 20+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["55/15","Age 55+ with 15+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["65/20","Age 65+ with 20+ years as a permanent resident: simpler civics test — 10 questions from a special set of 20, 6 correct to pass. May use your language."],["N-648 disability","A licensed doctor can certify a medical condition (12+ months) that prevents the English or civics test. You may then be exempt."]],
-  packH:"What to bring to your interview", packIntro:"USCIS says the Form N-400 instructions list the original documents to bring, depending on your case. Check off what applies to you \u2014 your list is saved on this device.",
-  packItems:["Appointment notice (Form I-797C)","Green Card (permanent resident card)","Passport(s) \u2014 current and expired","State driver\u2019s license or ID","Tax returns (last 3\u20135 years)","Marriage certificate (if married)","Divorce or death certificates (if previously married)","Children\u2019s birth certificates (if applicable)","Court / arrest records (if applicable)","Name-change documents (if applicable)"],
+  excs:[["50/20","Age 50+ with 20+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["55/15","Age 55+ with 15+ years as a permanent resident: no English test. Take the civics test in your language, with your own interpreter."],["65/20","Age 65+ with 20+ years as a permanent resident: simpler civics test: 10 questions from a special set of 20, 6 correct to pass. May use your language."],["N-648 disability","A licensed doctor can certify a medical condition (12+ months) that prevents the English or civics test. You may then be exempt."]],
+  packH:"What to bring to your interview", packIntro:"USCIS says the Form N-400 instructions list the original documents to bring, depending on your case. Check off what applies to you. Your list is saved on this device.",
+  packItems:["Appointment notice (Form I-797C)","Green Card (permanent resident card)","Passports, current and expired","State driver\u2019s license or ID","Tax returns (last 3\u20135 years)","Marriage certificate (if married)","Divorce or death certificates (if previously married)","Children\u2019s birth certificates (if applicable)","Court / arrest records (if applicable)","Name-change documents (if applicable)"],
   packReset:"Reset checklist",
   dayH:"On the day",
-  dayTips:["Arrive 15\u201330 minutes early \u2014 you\u2019ll go through security screening.","You\u2019ll be under oath: answer truthfully.","The officer reviews your N-400 first, then gives the English and civics tests.","If a document is missing, you usually get 30\u201390 days to send it \u2014 you won\u2019t have to start over."],
+  dayTips:["Arrive 15\u201330 minutes early. You\u2019ll go through security screening.","You\u2019ll be under oath: answer truthfully.","The officer reviews your N-400 first, then gives the English and civics tests.","If a document is missing, you usually get 30\u201390 days to send it. You won\u2019t have to start over."],
   resTitle:"Official resources",
   resIntro:"Always trust uscis.gov first. These are the official pages behind everything in this app:",
-  res:[["2025 Civics Test (official)","The official 2025 test page and the 128-question study bank (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Check for Test Updates","Answers that change (president, senators, governor…). Check before your interview.","https://www.uscis.gov/citizenship/testupdates"],["Study for the Test","All official USCIS study materials in one place.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 Steps to Naturalization","The official step-by-step process.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Exceptions & Accommodations","Age, disability, and other exceptions explained.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Multilingual Resources","Official USCIS materials in Spanish, Arabic, Chinese, Korean, Tagalog, Vietnamese (for the 2008 test).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["2008 Test Questions (official text)","The 100-question bank for applications filed before Oct 20, 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Reduced Fee Request","How to request the $380 reduced filing fee.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
-  disc:"<b>Study aid only — not legal advice.</b> Spanish translations are study help; the official 2025 test materials are published in English only. Some answers (president, senators, governor…) change over time — always check <b>uscis.gov/citizenship/testupdates</b> before your interview. Question content: USCIS M-1778 (09/25) and Form N-400 (01/20/25) Part 9, verified Sept 2026."
+  res:[["2025 Civics Test (official)","The official 2025 test page and the 128-question study bank (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Check for Test Updates","Answers that change (president, senators, governor…). Check before your interview.","https://www.uscis.gov/citizenship/testupdates"],["Study for the Test","All official USCIS study materials in one place.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 Steps to Naturalization","The official step-by-step process.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Exceptions & Accommodations","Age, disability, and other exceptions explained.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Multilingual Resources","Official USCIS materials in Spanish, Arabic, Chinese, Korean, Tagalog, Vietnamese (for the 2008 test).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["2008 Test Questions (official text)","The 100-question bank for applications filed before Oct 20, 2025.","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Reduced Fee Request","How to request the $380 reduced filing fee.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
+  disc:"<b>Study aid only. Not legal advice.</b> Spanish translations are study help; the official 2025 test materials are published in English only. Some answers (president, senators, governor…) change over time. Always check <b>uscis.gov/citizenship/testupdates</b> before your interview. Question content: USCIS M-1778 (09/25) and Form N-400 (01/20/25) Part 9, verified Sept 2026."
 },
 es:{
   appSub:"Estudia para la ciudadanía estadounidense",
   tabs:[["study","📖","Estudiar"],["practice","✍️","Practicar"],["interview","🎤","Entrevista"],["english","🗣️","Inglés"],["process","📋","Proceso"],["resources","🔗","Recursos"]],
   filingTitle:"¿Cuándo presentaste el Formulario N-400?",
   filedBefore:"Antes del 20 de oct. de 2025", filedAfter:"El 20 de oct. de 2025 o después",
-  testAfterHTML:"<b>Tomas el examen de educación cívica 2025:</b> 128 preguntas de estudio. El oficial hace hasta 20 preguntas — necesitas <b>12 correctas</b> para aprobar (se detiene con 9 errores).",
-  testBeforeHTML:"<b>Tomas el examen de educación cívica 2008:</b> las 100 preguntas están en esta aplicación abajo. El oficial hace hasta 10 — necesitas <b>6 correctas</b> para aprobar.",
+  testAfterHTML:"<b>Tomas el examen de educación cívica 2025:</b> 128 preguntas de estudio. El oficial hace hasta 20 preguntas. Necesitas <b>12 correctas</b> para aprobar (se detiene con 9 errores).",
+  testBeforeHTML:"<b>Tomas el examen de educación cívica 2008:</b> las 100 preguntas están en esta aplicación abajo. El oficial hace hasta 10. Necesitas <b>6 correctas</b> para aprobar.",
   testBeforeLink:"Preguntas oficiales 2008 (texto de USCIS)",
   studyTitle:"Estudia las preguntas", all:"Todas", star65:"★ 65/20",
   tapReveal:"Toca una pregunta para ver la respuesta. Toca 🔊 para escucharla.",
-  answersLabel:"Respuestas aceptadas — cualquiera es correcta",
+  answersLabel:"Respuestas aceptadas: cualquiera es correcta",
   knowIt:"✓ La sé", knownCount:(a,b)=>`${a} de ${b} marcadas`,
   listen:"🔊 Escuchar",
   variesTitle:"⚠ Esta respuesta cambia",
@@ -359,38 +363,38 @@ es:{
   variesLinkLabel:{senators:"Encuentra tus senadores → senate.gov",representative:"Encuentra tu representante → house.gov",governor:"Encuentra tu gobernador → usa.gov","state capital":"Capitales estatales → usa.gov",justices:"Número de jueces → uscis.gov/testupdates",office:"Funcionarios actuales → uscis.gov/testupdates"},
   practiceTitle:"Examen de práctica", start:"Comenzar",
   practiceIntro:"Como en la entrevista real: las preguntas se hacen en voz alta. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
-  testStd:"Examen 2025 — estándar", testStdDesc:"Hasta 20 preguntas · 12 correctas para aprobar · se detiene con 9 errores",
-  testStd08:"Examen 2008 — estándar", testStdDesc08:"Hasta 10 preguntas · 6 correctas para aprobar · se detiene con 5 errores",
-  practiceIntro08:"Como en la entrevista real de 2008: el oficial hace hasta 10 preguntas — responde 6 correctamente para aprobar. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
+  testStd:"Examen 2025: estándar", testStdDesc:"Hasta 20 preguntas · 12 correctas para aprobar · se detiene con 9 errores",
+  testStd08:"Examen 2008: estándar", testStdDesc08:"Hasta 10 preguntas · 6 correctas para aprobar · se detiene con 5 errores",
+  practiceIntro08:"Como en la entrevista real de 2008: el oficial hace hasta 10 preguntas. Responde 6 correctamente para aprobar. Lee cada pregunta, di tu respuesta en voz alta y evalúate con honestidad.",
   testSenior:"Especial 65/20", testSeniorDesc:"10 preguntas del grupo ★ · 6 correctas para aprobar",
-  oldTestNote:"¿Presentaste antes del 20 de oct. de 2025? Tomas el examen 2008 — practica con los materiales oficiales:",
+  oldTestNote:"¿Presentaste antes del 20 de oct. de 2025? Tomas el examen 2008. Practica con los materiales oficiales:",
   showAnswer:"Mostrar respuesta", iKnew:"✓ La sabía", iMissed:"✗ No la sabía",
   qNum:(a)=>`Pregunta ${a}`,
   correctToPass:(n)=>`${n} correctas para aprobar`, wrongs:(n)=>`${n} errores`,
-  passMsg:"¡Aprobaste! 🎉", failMsg:"Todavía no — sigue estudiando 💪",
+  passMsg:"¡Aprobaste! 🎉", failMsg:"Todavía no. Sigue estudiando 💪",
   yourScore:"Tu puntaje", reviewMissed:"Repasa lo que fallaste:", tryAgain:"Intentar de nuevo", backToSetup:"← Elige otro examen",
   searchPh:"🔍 Buscar preguntas o respuestas…",
   noResults:"Ninguna pregunta coincide con tu búsqueda.",
   focusH:"🎯 Áreas de enfoque",
-  focusD:"Tus categorías más débiles en la práctica reciente — estudia estas primero.",
+  focusD:"Tus categorías más débiles en la práctica reciente. Estudia estas primero.",
   focusEmpty:"Practica unas rondas y aquí mostraremos tus áreas de enfoque.",
   focusTries:n=>n+" intentos",
   weakBtn:"🎯 Practicar mis áreas débiles",
-  historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía — tus resultados aparecerán aquí.",
+  historyH:"Tu historial de práctica", historyEmpty:"Sin exámenes de práctica todavía. Tus resultados aparecerán aquí.",
   reviewBtn:(n)=>`🔁 Repasar errores (${n})`,
   reviewIntro:"Preguntas que fallaste antes. «La sabía» la pasa a una ronda de repaso posterior; acierta en todas las rondas y se gradúa de la lista. 🎓",
   dueBtn:(n)=>`Para repasar hoy (${n})`,
   dueIntro:"Repaso espaciado: estos vencen hoy. Acierta y vuelve más tarde; acierta en todas las rondas y se gradúa. 🎓",
-  dueEmpty:"Nada que repasar — ¡estás al día! 🎉",
-  clearedAll:"¡Todo claro — no quedan errores! 🎉",
-  stillLeft:(n)=>`${n} aún necesita${n===1?"":"n"} trabajo — sigue repasando.`,
+  dueEmpty:"Nada que repasar. ¡Estás al día! 🎉",
+  clearedAll:"¡Todo claro! ¡No quedan errores! 🎉",
+  stillLeft:(n)=>`${n} aún necesita${n===1?"":"n"} trabajo. Sigue repasando.`,
   readingTitle:"Lectura", writingTitle:"Hablar, leer y escribir",
-  speakH:"Hablar", speakP:"Sin examen separado — el oficial evalúa tu inglés hablado durante la entrevista. Entiende las preguntas y responde en inglés.",
-  readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura — toca cualquier palabra para escucharla:",
-  writeP:"Escribe <b>1 de 3</b> oraciones correctamente mientras el oficial la dicta. Estudia el vocabulario oficial de escritura — toca cualquier palabra para escucharla:",
+  speakH:"Hablar", speakP:"Sin examen separado. El oficial evalúa tu inglés hablado durante la entrevista. Entiende las preguntas y responde en inglés.",
+  readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura. Toca cualquier palabra para escucharla:",
+  writeP:"Escribe <b>1 de 3</b> oraciones correctamente mientras el oficial la dicta. Estudia el vocabulario oficial de escritura. Toca cualquier palabra para escucharla:",
   readVocab:"Vocabulario de lectura", writeVocab:"Vocabulario de escritura",
   dictH:"Práctica de dictado",
-  dictD:"Como en el examen real: el oficial lee una frase y tú la escribes. Escribe bien <b>1 de 3</b> para aprobar. Estas frases de práctica usan solo el vocabulario oficial de escritura — USCIS no publica las frases reales del examen.",
+  dictD:"Como en el examen real: el oficial lee una frase y tú la escribes. Escribe bien <b>1 de 3</b> para aprobar. Estas frases de práctica usan solo el vocabulario oficial de escritura. USCIS no publica las frases reales del examen.",
   dictStart:"Empezar el dictado", dictPlay:"🔊 Escuchar la frase", dictPh:"Escribe lo que escuches…",
   dictCheck:"Revisar", dictNext:"Siguiente →", dictQ:(a,b)=>`Frase ${a} de ${b}`,
   dictCorrect:"¡Correcto! ✓", dictWrong:"Casi ✗",
@@ -402,14 +406,14 @@ es:{
   cdD:"Pon la fecha de tu entrevista y contaremos los d\u00edas con un ritmo de estudio.",
   cdSet:"Fijar fecha", cdChange:"Cambiar", cdClear:"Borrar",
   cdDays:n=>n===1?"Falta 1 d\u00eda":"Faltan "+n+" d\u00edas",
-  cdToday:"\u00a1Hoy es el d\u00eda \u2014 buena suerte! \ud83c\udf40",
+  cdToday:"\u00a1Hoy es el d\u00eda! \u00a1Buena suerte! \ud83c\udf40",
   cdPast:"\u00bfC\u00f3mo te fue? Borra la fecha para empezar de nuevo.",
   cdPace:n=>n>30?"Ritmo constante: una ronda de pr\u00e1ctica al d\u00eda te mantiene afilado.":n>7?"Toma impulso: una pr\u00e1ctica completa m\u00e1s repaso de errores cada d\u00eda.":"Recta final: un simulacro cada d\u00eda esta semana.",
   mockH:"Simulacro completo de entrevista", mockD:"Simula la cita real de principio a fin: lectura, dictado, cívica y preguntas de entrevista.",
   mockStart:"Empezar simulacro", mockPhase:(n)=>`🎭 Simulacro · parte ${n} de 4`,
   mockRead:"Lectura", mockDict:"Dictado", mockCiv:"Cívica", mockN400:"Preguntas de entrevista",
   mockSumH:"Resultados del simulacro",
-  mockPassAll:"¡Aprobaste todas las partes puntuadas — estás listo/a! 🎉",
+  mockPassAll:"¡Aprobaste todas las partes puntuadas! ¡Estás listo/a! 🎉",
   mockFailSome:"Sigue practicando las partes marcadas ✗ y repite el simulacro.",
   readH:"Práctica de lectura",
   readD:"Como en el examen real: lee <b>1 de 3</b> oraciones en voz alta para que el oficial entienda cada palabra. Lee cada oración en voz alta y luego toca con honestidad.",
@@ -417,13 +421,13 @@ es:{
   readQ:(a,b)=>`Oración ${a} de ${b}`,
   readOk:"La leí bien ✓", readNo:"Me equivoqué en algunas palabras ✗",
   readDone:"¡Práctica de lectura completada!", readScore:(s)=>`${s} de 3 leídas bien`,
-  readHonest:"Sé honesto contigo mismo — en la entrevista real, el oficial decide.",
+  readHonest:"Sé honesto contigo mismo. En la entrevista real, el oficial decide.",
   intTitle:"Preguntas de la entrevista",
-  intIntro:"En tu entrevista, el oficial hace estas preguntas personales de la <b>Parte 9 del Formulario N-400</b> (edición 01/20/25). La mayoría se responden «No» — las últimas, sobre el juramento, se responden «Sí». Responde siempre con la verdad.",
+  intIntro:"En tu entrevista, el oficial hace estas preguntas personales de la <b>Parte 9 del Formulario N-400</b> (edición 01/20/25). La mayoría se responden «No». Las últimas, sobre el juramento, se responden «Sí». Responde siempre con la verdad.",
   intSource:"Fuente: Formulario oficial N-400, Parte 9. El español es solo ayuda para estudiar.",
   intMeaning:"Qué significa",
   expNo:"Normalmente «No»", expYes:"Normalmente «Sí»", expVaries:"Depende de ti",
-  expVariesNote:"Responde con la verdad — depende de tu situación.",
+  expVariesNote:"Responde con la verdad. Depende de tu situación.",
   fNo:"Normalmente No", fYes:"Normalmente Sí", fDep:"Depende",
   intPracticeH:"Practica la entrevista", intPracticeD:"10 preguntas al azar · toca Sí o No, como las hace el oficial.",
   checkTitle:"Lista para el día de la entrevista",
@@ -432,11 +436,11 @@ es:{
   checkCond:"si aplica",
   checkProgress:(n,t)=>`${n} de ${t} listos`,
   checkReset:"Reiniciar lista",
-  checkNote:"Su notificación de cita indica exactamente qué llevar en su caso — ante la duda, lleve el original más una copia.",
+  checkNote:"Su notificación de cita indica exactamente qué llevar en su caso. Ante la duda, lleve el original más una copia.",
   intStart:"Empezar a practicar",
   intQ:(a,b)=>`Pregunta ${a} de ${b}`,
   intCorrect:"Correcto ✓", intWrong:"Casi ✗",
-  intVariesFb:"Esta depende de tu situación — en la entrevista real, responde con la verdad.",
+  intVariesFb:"Esta depende de tu situación. En la entrevista real, responde con la verdad.",
   intDone:"¡Práctica de entrevista completada!", intScore:(s)=>`${s} de 10 correctas`,
   intAgain:"Practicar de nuevo", intNext:"Siguiente →",
   procTitle:"El camino a la ciudadanía", eligH:"Quién puede solicitar (vía de 5 años)",
@@ -446,16 +450,16 @@ es:{
   feesH:"Tarifas", feeRows:[["N-400 en línea","$710"],["N-400 por correo","$760"],["Tarifa reducida (solo por correo, ingresos bajo el 400% de la línea de pobreza)","$380"]],
   feesNote:"Las tarifas cambian con el tiempo. Verifica siempre la tarifa actual en uscis.gov antes de presentar.",
   excH:"Excepciones",
-  excs:[["50/20","50 años o más con 20+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["55/15","55 años o más con 15+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["65/20","65 años o más con 20+ años como residente permanente: examen más simple — 10 preguntas de un grupo especial de 20, 6 correctas para aprobar. Puedes usar tu idioma."],["N-648 discapacidad","Un médico licenciado puede certificar una condición médica (12+ meses) que impide los exámenes de inglés o educación cívica. Puedes quedar exento."]],
-  packH:"Qu\u00e9 llevar a tu entrevista", packIntro:"USCIS dice que las instrucciones del Formulario N-400 indican los documentos originales que debes llevar, seg\u00fan tu caso. Marca los que apliquen a ti \u2014 tu lista se guarda en este dispositivo.",
-  packItems:["Aviso de cita (Formulario I-797C)","Tarjeta verde (tarjeta de residente permanente)","Pasaporte(s) \u2014 vigente(s) y vencido(s)","Licencia de conducir o identificaci\u00f3n estatal","Declaraciones de impuestos (\u00faltimos 3 a 5 a\u00f1os)","Certificado de matrimonio (si est\u00e1s casado/a)","Certificados de divorcio o defunci\u00f3n (si hubo matrimonios anteriores)","Certificados de nacimiento de tus hijos (si aplica)","Documentos judiciales / de arrestos (si aplica)","Documentos de cambio de nombre (si aplica)"],
+  excs:[["50/20","50 años o más con 20+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["55/15","55 años o más con 15+ años como residente permanente: sin examen de inglés. Toma el examen de educación cívica en tu idioma, con tu propio intérprete."],["65/20","65 años o más con 20+ años como residente permanente: examen más simple: 10 preguntas de un grupo especial de 20, 6 correctas para aprobar. Puedes usar tu idioma."],["N-648 discapacidad","Un médico licenciado puede certificar una condición médica (12+ meses) que impide los exámenes de inglés o educación cívica. Puedes quedar exento."]],
+  packH:"Qu\u00e9 llevar a tu entrevista", packIntro:"USCIS dice que las instrucciones del Formulario N-400 indican los documentos originales que debes llevar, seg\u00fan tu caso. Marca los que apliquen a ti. Tu lista se guarda en este dispositivo.",
+  packItems:["Aviso de cita (Formulario I-797C)","Tarjeta verde (tarjeta de residente permanente)","Pasaportes, vigentes y vencidos","Licencia de conducir o identificaci\u00f3n estatal","Declaraciones de impuestos (\u00faltimos 3 a 5 a\u00f1os)","Certificado de matrimonio (si est\u00e1s casado/a)","Certificados de divorcio o defunci\u00f3n (si hubo matrimonios anteriores)","Certificados de nacimiento de tus hijos (si aplica)","Documentos judiciales / de arrestos (si aplica)","Documentos de cambio de nombre (si aplica)"],
   packReset:"Reiniciar lista",
   dayH:"El d\u00eda de la cita",
-  dayTips:["Llega 15\u201330 minutos antes \u2014 pasar\u00e1s por un control de seguridad.","Estar\u00e1s bajo juramento: responde con la verdad.","El oficial revisa tu N-400 primero, luego te hace los ex\u00e1menes de ingl\u00e9s y educaci\u00f3n c\u00edvica.","Si falta un documento, normalmente te dan 30\u201390 d\u00edas para enviarlo \u2014 no tendr\u00e1s que empezar de nuevo."],
+  dayTips:["Llega 15\u201330 minutos antes. Pasar\u00e1s por un control de seguridad.","Estar\u00e1s bajo juramento: responde con la verdad.","El oficial revisa tu N-400 primero, luego te hace los ex\u00e1menes de ingl\u00e9s y educaci\u00f3n c\u00edvica.","Si falta un documento, normalmente te dan 30\u201390 d\u00edas para enviarlo. No tendr\u00e1s que empezar de nuevo."],
   resTitle:"Recursos oficiales",
   resIntro:"Confía siempre primero en uscis.gov. Estas son las páginas oficiales detrás de todo lo que hay en esta app:",
-  res:[["Examen de Educación Cívica 2025 (oficial)","La página oficial del examen 2025 y el banco de 128 preguntas (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Revisar actualizaciones del examen","Respuestas que cambian (presidente, senadores, gobernador…). Revisa antes de tu entrevista.","https://www.uscis.gov/citizenship/testupdates"],["Estudia para el examen","Todos los materiales oficiales de estudio de USCIS en un lugar.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 pasos a la naturalización","El proceso oficial paso a paso.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Excepciones y adaptaciones","Excepciones por edad, discapacidad y otras, explicadas.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Recursos multilingües","Materiales oficiales de USCIS en español, árabe, chino, coreano, tagalo, vietnamita (para el examen 2008).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["Preguntas del examen 2008 (texto oficial)","El banco de 100 preguntas para solicitudes presentadas antes del 20 de oct. de 2025.","http://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Solicitud de tarifa reducida","Cómo solicitar la tarifa reducida de $380.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
-  disc:"<b>Solo ayuda de estudio — no es asesoría legal.</b> Las traducciones al español son para ayudarte a estudiar; los materiales oficiales del examen 2025 se publican solo en inglés. Algunas respuestas (presidente, senadores, gobernador…) cambian con el tiempo — revisa siempre <b>uscis.gov/citizenship/testupdates</b> antes de tu entrevista. Contenido de preguntas: USCIS M-1778 (09/25) y Formulario N-400 (01/20/25) Parte 9, verificado en septiembre de 2026."
+  res:[["Examen de Educación Cívica 2025 (oficial)","La página oficial del examen 2025 y el banco de 128 preguntas (PDF).","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/2025-civics-test"],["Revisar actualizaciones del examen","Respuestas que cambian (presidente, senadores, gobernador…). Revisa antes de tu entrevista.","https://www.uscis.gov/citizenship/testupdates"],["Estudia para el examen","Todos los materiales oficiales de estudio de USCIS en un lugar.","https://www.uscis.gov/citizenship/find-study-materials-and-resources/study-for-the-test"],["10 pasos a la naturalización","El proceso oficial paso a paso.","https://www.uscis.gov/citizenship/learn-about-citizenship/10-steps-to-naturalization"],["Excepciones y adaptaciones","Excepciones por edad, discapacidad y otras, explicadas.","https://www.uscis.gov/citizenship/exceptions-and-accommodations"],["Recursos multilingües","Materiales oficiales de USCIS en español, árabe, chino, coreano, tagalo, vietnamita (para el examen 2008).","https://www.uscis.gov/citizenship/find-study-materials-and-resources/citizenship-multilingual-resources"],["Preguntas del examen 2008 (texto oficial)","El banco de 100 preguntas para solicitudes presentadas antes del 20 de oct. de 2025.","https://www.uscis.gov/citizenship-resource-center/naturalization-test-and-study-resources/study-for-the-test/citizenship-resources-in-text-only-format"],["Solicitud de tarifa reducida","Cómo solicitar la tarifa reducida de $380.","https://www.uscis.gov/forms/filing-fees/additional-information-on-filing-a-reduced-fee-request"]],
+  disc:"<b>Solo ayuda de estudio. No es asesoría legal.</b> Las traducciones al español son para ayudarte a estudiar; los materiales oficiales del examen 2025 se publican solo en inglés. Algunas respuestas (presidente, senadores, gobernador…) cambian con el tiempo. Revisa siempre <b>uscis.gov/citizenship/testupdates</b> antes de tu entrevista. Contenido de preguntas: USCIS M-1778 (09/25) y Formulario N-400 (01/20/25) Parte 9, verificado en septiembre de 2026."
 }};
 
 const VARIES_LINK = {
@@ -481,7 +485,7 @@ const T = () => STR[lang];
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
 const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
-const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,60)));
+const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,500)));
 /* spaced review: key -> {ivl: days, next: epoch ms due}. Intervals 1->3->7->14->30, then graduate. */
 let srs = JSON.parse(localStorage.getItem("oath_srs") || "{}");
 const saveSrs = () => localStorage.setItem("oath_srs", JSON.stringify(srs));
@@ -551,11 +555,11 @@ function filingCard(){
 }
 
 /* ---------- study ---------- */
-function cats(){ const seen=[]; Q().forEach(q=>{ const c=lang==="es"?q.cat_es:q.cat; if(!seen.includes(c)) seen.push(c); }); return seen; }
+function cats(){ const seen=[]; Q().forEach(q=>{ const c=q.cat; if(!seen.includes(c)) seen.push(c); }); return seen; }
 function filteredQuestions(){
   let list = Q().filter(q=>{
     if(studyStar && !q.star) return false;
-    if(studyCat!=="all" && (lang==="es"?q.cat_es:q.cat)!==studyCat) return false;
+    if(studyCat!=="all" && q.cat!==studyCat) return false;
     return true;
   });
   const sq = studyQ.trim().toLowerCase();
@@ -586,7 +590,7 @@ function renderStudy(){
   const t = T(), el = document.getElementById("v-study");
   const chipAll = `<button class="chip${studyCat==="all"?" on":""}" data-c="all">${esc(t.all)}</button>`;
   const chipStar = `<button class="chip${studyStar?" on":""}" data-s="1">${esc(t.star65)}</button>`;
-  const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("") + chipStar;
+  const chips = chipAll + cats().map(c=>`<button class="chip${studyCat===c?" on":""}" data-c="${esc(c)}">${esc(catLabel(c))}</button>`).join("") + chipStar;
   const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
   el.innerHTML = filingCard() + countdownCard() + streakCard() + `<div class="card"><h2>🎭 ${esc(t.mockH)}</h2>
     <p>${esc(t.mockD)}</p>
@@ -689,7 +693,7 @@ function catLabel(enCat){
 const CHECKLIST = [
   {sec:"docs", id:"notice", en:"Interview appointment notice (Form I-797C)", es:"Notificación de cita para la entrevista (Formulario I-797C)"},
   {sec:"docs", id:"greencard", en:"Green card (permanent resident card)", es:"Tarjeta de residencia permanente (green card)"},
-  {sec:"docs", id:"passport", en:"All passports — current and expired", es:"Todos los pasaportes — vigentes y vencidos"},
+  {sec:"docs", id:"passport", en:"All passports, current and expired", es:"Todos los pasaportes, vigentes y vencidos"},
   {sec:"docs", id:"photoid", en:"State photo ID (driver's license)", es:"Identificación con foto del estado (licencia de conducir)"},
   {sec:"docs", id:"n400copy", en:"Copy of your filed N-400 and everything you submitted", es:"Copia de su N-400 presentado y todo lo que envió"},
   {sec:"docs", id:"taxes", en:"Federal tax returns (last 3–5 years)", es:"Declaraciones de impuestos federales (últimos 3 a 5 años)"},
@@ -701,8 +705,8 @@ const CHECKLIST = [
   {sec:"docs", id:"court", en:"Court-certified arrest / court records", es:"Registros de arresto / judiciales certificados por el tribunal", cond:1},
   {sec:"docs", id:"namechg", en:"Name-change documents (if requesting a name change)", es:"Documentos de cambio de nombre (si solicita un cambio de nombre)", cond:1},
   {sec:"day", id:"early", en:"Arrive 15–30 minutes early", es:"Llegue 15–30 minutos temprano"},
-  {sec:"day", id:"security", en:"Pass security screening — bring only what you need", es:"Pase el control de seguridad — lleve solo lo necesario"},
-  {sec:"day", id:"oath", en:"You will be placed under oath — answer truthfully", es:"Estará bajo juramento — responda con la verdad"},
+  {sec:"day", id:"security", en:"Pass security screening. Bring only what you need", es:"Pase el control de seguridad. Lleve solo lo necesario"},
+  {sec:"day", id:"oath", en:"You will be placed under oath. Answer truthfully", es:"Estará bajo juramento. Responda con la verdad"},
   {sec:"day", id:"reviewn", en:"Re-read your N-400 answers before you go in", es:"Relea sus respuestas del N-400 antes de entrar"},
 ];
 function loadCheck(){ try{ return new Set(JSON.parse(localStorage.getItem("oath_checklist")||"[]")); }catch(e){ return new Set(); } }
@@ -835,12 +839,14 @@ function renderPracticeDone(el){
     saveHistory();
     pz.missed.forEach(q=>{ const k=qkey(q.n); mistakes.add(k); srsOnMiss(k); }); saveMistakes();
   }
-  if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; startMockN400(); return; }
+  if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; pz = null; startMockN400(); return; }
+  const bankPrefix = (filed==="before"?"08":"25")+":";
+  const bankLeft = [...mistakes].filter(k=>k.startsWith(bankPrefix)).length;
   const headMsg = pz.review
-    ? (mistakes.size===0 ? t.clearedAll : t.stillLeft(mistakes.size))
+    ? (bankLeft===0 ? t.clearedAll : t.stillLeft(bankLeft))
     : (pass ? t.passMsg : t.failMsg);
   el.innerHTML = `<div class="card" style="text-align:center">
-    <div class="result ${pz.review ? (mistakes.size===0?"pass":"fail") : (pass?"pass":"fail")}">${esc(headMsg)}</div>
+    <div class="result ${pz.review ? (bankLeft===0?"pass":"fail") : (pass?"pass":"fail")}">${esc(headMsg)}</div>
     <div class="scorebar">
       <div class="scorepill ok"><b>${pz.right}</b><span>✓</span></div>
       <div class="scorepill bad"><b>${pz.wrong}</b><span>✗</span></div>
