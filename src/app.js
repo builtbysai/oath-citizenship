@@ -248,11 +248,30 @@ const VARIES_LINK = {
 };
 
 /* ---------- state ---------- */
-let lang = localStorage.getItem("oath_lang") || "en";
-let filed = localStorage.getItem("oath_filed") || "after";
-let known = new Set(JSON.parse(localStorage.getItem("oath_known") || "[]"));
-let history = JSON.parse(localStorage.getItem("oath_history") || "[]");
-let mistakes = new Set(JSON.parse(localStorage.getItem("oath_mistakes") || "[]"));
+/* Hardened persisted-state reads: a stored value can be missing, malformed,
+   or hostile (wrong shape, e.g. a string where an array belongs). The readers
+   below validate shape and fall back to an empty container, so a corrupt
+   value can never throw or brick the app on load. */
+const isPlainObj = v => v !== null && typeof v === "object" && !Array.isArray(v);
+function readArray(key, itemTest){
+  try{
+    const v = JSON.parse(localStorage.getItem(key));
+    if(!Array.isArray(v)) return [];
+    return itemTest ? v.filter(itemTest) : v;
+  }catch(e){ return []; }
+}
+function readObject(key){
+  try{
+    const v = JSON.parse(localStorage.getItem(key));
+    return isPlainObj(v) ? v : {};
+  }catch(e){ return {}; }
+}
+const isStr = v => typeof v === "string";
+let lang = localStorage.getItem("oath_lang") === "es" ? "es" : "en";
+let filed = localStorage.getItem("oath_filed") === "before" ? "before" : "after";
+let known = new Set(readArray("oath_known", isStr));
+let history = readArray("oath_history", isPlainObj);
+let mistakes = new Set(readArray("oath_mistakes", isStr));
 let studyCat = "all", studyStar = false, studyQ = "", curView = "study";
 const T = () => STR[lang];
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -260,7 +279,15 @@ const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...kn
 const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
 const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,500)));
 /* spaced review: key -> {ivl: days, next: epoch ms due}. Intervals 1->3->7->14->30, then graduate. */
-let srs = JSON.parse(localStorage.getItem("oath_srs") || "{}");
+function readSrs(key){
+  const out = {}, v = readObject(key);
+  for(const k of Object.keys(v)){
+    const e = v[k];
+    if(isPlainObj(e) && typeof e.ivl === "number" && typeof e.next === "number") out[k] = e;
+  }
+  return out;
+}
+let srs = readSrs("oath_srs");
 const saveSrs = () => localStorage.setItem("oath_srs", JSON.stringify(srs));
 const SRS_IVLS = [1,3,7,14,30];
 const srsGet = k => srs[k] || {ivl:1, next:0};
@@ -273,7 +300,7 @@ function srsOnRight(k){
   saveMistakes(); saveSrs();
 }
 function srsOnWrong(k){ srs[k] = {ivl:1, next:Date.now()}; saveSrs(); }
-let intMistakes = new Set(JSON.parse(localStorage.getItem("oath_int_mistakes") || "[]"));
+let intMistakes = new Set(readArray("oath_int_mistakes", isStr));
 const saveIntMistakes = () => localStorage.setItem("oath_int_mistakes", JSON.stringify([...intMistakes].slice(0,40)));
 /* active question bank + namespaced per-bank progress keys ("08:"=2008 test, "25:"=2025 test) */
 const Q = () => filed==="before" ? QUESTIONS2008 : QUESTIONS;
@@ -383,9 +410,11 @@ function renderStudy(){
 
 /* ---------- daily streak ---------- */
 function dayStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function getStreak(){ try{ return JSON.parse(localStorage.getItem("oath_streak")||'{"count":0}').count||0; }catch(e){ return 0; } }
+function getStreak(){ const n = readObject("oath_streak").count; return Number.isFinite(n) ? n : 0; }
 function bumpStreak(){
-  let st; try{ st = JSON.parse(localStorage.getItem("oath_streak")||'{"count":0,"last":""}'); }catch(e){ st = {count:0,last:""}; }
+  const st = readObject("oath_streak");
+  if(!Number.isFinite(st.count)) st.count = 0;
+  if(typeof st.last !== "string") st.last = "";
   const t = dayStr(new Date());
   if(st.last!==t){
     const y = new Date(); y.setDate(y.getDate()-1);
@@ -402,7 +431,13 @@ function streakCard(){
 }
 
 /* ---------- interview countdown ---------- */
-function getIDate(){ return localStorage.getItem("oath_idate") || ""; }
+function getIDate(){
+  const v = localStorage.getItem("oath_idate") || "";
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "";
+  const p = v.split("-"), d = new Date(+p[0], +p[1]-1, +p[2]);
+  if(isNaN(d.getTime()) || d.getFullYear()!==+p[0] || d.getMonth()!==+p[1]-1 || d.getDate()!==+p[2]) return "";
+  return v;
+}
 function daysLeft(){
   const v = getIDate(); if(!v) return null;
   const p = v.split("-"); if(p.length!==3) return null;
@@ -482,7 +517,7 @@ const CHECKLIST = [
   {sec:"day", id:"oath", en:"You will be placed under oath. Answer truthfully", es:"Estará bajo juramento. Responda con la verdad"},
   {sec:"day", id:"reviewn", en:"Re-read your N-400 answers before you go in", es:"Relea sus respuestas del N-400 antes de entrar"},
 ];
-function loadCheck(){ try{ return new Set(JSON.parse(localStorage.getItem("oath_checklist")||"[]")); }catch(e){ return new Set(); } }
+function loadCheck(){ return new Set(readArray("oath_checklist", isStr)); }
 function saveCheck(set){ localStorage.setItem("oath_checklist", JSON.stringify([...set])); }
 function weakestCats(){
   const bank = filed==="before"?"08":"25";
@@ -724,7 +759,7 @@ function renderMockSummary(){
 }
 /* ---------- dictation ---------- */
 let dz = null;
-let dzMistakes = new Set(JSON.parse(localStorage.getItem("oath_dz_mistakes") || "[]"));
+let dzMistakes = new Set(readArray("oath_dz_mistakes", isStr));
 const saveDzMistakes = () => localStorage.setItem("oath_dz_mistakes", JSON.stringify([...dzMistakes].slice(0,30)));
 function normWords(s){ return s.toLowerCase().replace(/[.,!?;:'"]/g,"").split(/\s+/).filter(Boolean); }
 function startDictation(){
@@ -909,7 +944,7 @@ function renderProcess(){
 }
 
 /* ---------- interview-day packing list ---------- */
-function getPack(){ try{ return JSON.parse(localStorage.getItem("oath_pack")||"[]"); }catch(e){ return []; } }
+function getPack(){ return readArray("oath_pack", Number.isInteger); }
 
 /* ---------- resources ---------- */
 function renderResources(){
