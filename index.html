@@ -271,7 +271,7 @@ en:{
   dueEmpty:"Nothing due for review. You're all caught up! 🎉",
   clearedAll:"All clear! No mistakes left! 🎉",
   stillLeft:(n)=>`${n} still need${n===1?"s":""} work. Keep reviewing.`,
-  readingTitle:"Reading", writingTitle:"Speaking, reading & writing",
+  readingTitle:"Reading", writingTitle:"Speaking, reading & writing", writingH:"Writing",
   speakH:"Speaking", speakP:"No separate test. The officer judges your spoken English during the interview. Understand the questions and answer in English.",
   readP:"Read <b>1 of 3</b> sentences aloud correctly. Study the official reading vocabulary. Tap any word to hear it:",
   writeP:"Write <b>1 of 3</b> sentences correctly as the officer dictates it. Study the official writing vocabulary. Tap any word to hear it:",
@@ -388,7 +388,7 @@ es:{
   dueEmpty:"Nada que repasar. ¡Estás al día! 🎉",
   clearedAll:"¡Todo claro! ¡No quedan errores! 🎉",
   stillLeft:(n)=>`${n} aún necesita${n===1?"":"n"} trabajo. Sigue repasando.`,
-  readingTitle:"Lectura", writingTitle:"Hablar, leer y escribir",
+  readingTitle:"Lectura", writingTitle:"Hablar, leer y escribir", writingH:"Escritura",
   speakH:"Hablar", speakP:"Sin examen separado. El oficial evalúa tu inglés hablado durante la entrevista. Entiende las preguntas y responde en inglés.",
   readP:"Lee <b>1 de 3</b> oraciones en voz alta correctamente. Estudia el vocabulario oficial de lectura. Toca cualquier palabra para escucharla:",
   writeP:"Escribe <b>1 de 3</b> oraciones correctamente mientras el oficial la dicta. Estudia el vocabulario oficial de escritura. Toca cualquier palabra para escucharla:",
@@ -898,12 +898,14 @@ function renderPracticeDone(el){
 
 /* ---------- english ---------- */
 function renderEnglish(){
+  if(rp && rp.idx < rp.order.length){ renderReadQ(); return; }
+  if(dz && dz.idx < dz.order.length){ renderDictQ(); return; }
   const t = T(), el = document.getElementById("v-english");
   const chips = arr => `<div class="vocabchips">`+arr.map(w=>`<button class="vchip" data-w="${esc(w)}">${esc(w)}</button>`).join("")+`</div>`;
   el.innerHTML = `<div class="card"><h2>${esc(t.writingTitle)}</h2>
     <h3>🗣️ ${esc(t.speakH)}</h3><p>${t.speakP}</p>
     <h3>📖 ${esc(t.readingTitle)}</h3><p>${t.readP}</p>${chips(READING_VOCAB)}
-    <h3>✏️ ${esc(t.writingTitle)}</h3><p>${t.writeP}</p>${chips(WRITING_VOCAB)}
+    <h3>✏️ ${esc(t.writingH)}</h3><p>${t.writeP}</p>${chips(WRITING_VOCAB)}
   </div>
   <div class="card"><h2>🎧 ${esc(t.dictH)}</h2><p>${t.dictD}</p>
     <div class="center"><button class="btn coral" id="dictStart">${esc(t.dictStart)}</button></div>
@@ -1070,6 +1072,7 @@ function nqCardHTML(q){
   </div>`;
 }
 function renderInterview(){
+  if(ipz && ipz.idx < ipz.order.length){ renderInterviewQ(); return; }
   const t = T(), el = document.getElementById("v-interview");
   const chips = [["all",t.all],["no",t.fNo],["yes",t.fYes],["varies",t.fDep]].map(([v,lb])=>
     `<button class="chip${intFilter===v?" on":""}" data-if="${v}">${esc(lb)}</button>`).join("");
