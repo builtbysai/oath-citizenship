@@ -270,13 +270,13 @@ const isStr = v => typeof v === "string";
 let lang = localStorage.getItem("oath_lang") === "es" ? "es" : "en";
 let filed = localStorage.getItem("oath_filed") === "before" ? "before" : "after";
 let known = new Set(readArray("oath_known", isStr));
-let history = readArray("oath_history", isPlainObj);
+let histLog = readArray("oath_history", isPlainObj);
 let mistakes = new Set(readArray("oath_mistakes", isStr));
 let studyCat = "all", studyStar = false, studyQ = "", curView = "study";
 const T = () => STR[lang];
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
-const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(history.slice(-20)));
+const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(histLog.slice(-20)));
 const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,500)));
 /* spaced review: key -> {ivl: days, next: epoch ms due}. Intervals 1->3->7->14->30, then graduate. */
 function readSrs(key){
@@ -522,7 +522,7 @@ function saveCheck(set){ localStorage.setItem("oath_checklist", JSON.stringify([
 function weakestCats(){
   const bank = filed==="before"?"08":"25";
   const agg = {};
-  history.filter(h=>h.bank===bank && h.cats).forEach(h=>{
+  histLog.filter(h=>h.bank===bank && h.cats).forEach(h=>{
     Object.entries(h.cats).forEach(([c,v])=>{
       agg[c] = agg[c] || {r:0,w:0}; agg[c].r += v.r||0; agg[c].w += v.w||0;
     });
@@ -543,8 +543,8 @@ function focusHTML(){
 }
 function historyHTML(){
   const t = T();
-  if(!history.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
-  return `<ul class="histlist">` + history.slice(-5).reverse().map(h=>{
+  if(!histLog.length) return `<p class="note">${esc(t.historyEmpty)}</p>`;
+  return `<ul class="histlist">` + histLog.slice(-5).reverse().map(h=>{
     const dot = h.pass ? "🟢" : "🔴";
     const mode = h.mode==="senior" ? "★" : h.mode==="review" ? "🔁" : h.mode==="due" ? "📅" : h.mode==="weak" ? "🎯" : "▶";
     const bank = h.bank==="08" ? "2008" : h.bank==="25" ? "2025" : "";
@@ -641,7 +641,7 @@ function renderPracticeDone(el){
   if(!pz.recorded){
     pz.recorded = true;
     bumpStreak();
-    history.push({d:new Date().toISOString().slice(0,10),
+    histLog.push({d:new Date().toISOString().slice(0,10),
       mode: pz.review?(pz.due?"due":"review"):(pz.senior?"senior":(pz.weak?"weak":"std")),
       right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
     saveHistory();
