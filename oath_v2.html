@@ -855,7 +855,13 @@ function practiceAnswer(ok){
   const q = pz.order[pz.idx];
   const cr = (pz.catRes[q.cat] = pz.catRes[q.cat] || {r:0,w:0});
   if(ok){ pz.right++; cr.r++; if(pz.review){ srsOnRight(qkey(q.n)); } }
-  else { pz.wrong++; cr.w++; pz.missed.push(q); if(pz.review){ srsOnWrong(qkey(q.n)); } }
+  else { pz.wrong++; cr.w++; pz.missed.push(q);
+    /* review/due modes already persist per answer; standard/senior/weak did not
+       until round end, so a refresh mid-round silently dropped the learning data.
+       Persist the mistake + SRS entry now (idempotent with the round-end write). */
+    if(pz.review){ srsOnWrong(qkey(q.n)); }
+    else { const k = qkey(q.n); mistakes.add(k); srsOnMiss(k); saveMistakes(); }
+  }
   pz.idx++;
   const finished = pz.review ? pz.idx>=pz.order.length
     : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
