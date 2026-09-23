@@ -25,7 +25,10 @@ self.addEventListener('fetch', (e) => {
     const cache = await caches.open(CACHE);
     if (isDoc) {
       try {
-        const res = await fetch(e.request);
+        /* no-store: Chrome's HTTP cache could otherwise satisfy this fetch
+           within the server's max-age and break the "always fresh when online"
+           promise above. Offline still falls back to the cache below. */
+        const res = await fetch(e.request, { cache: "no-store" });
         cache.put(e.request, res.clone());
         return res;
       } catch (err) {
