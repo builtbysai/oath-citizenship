@@ -609,6 +609,7 @@ function startPractice(mode, isMock){
   pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, due, recorded:false, mock:!!isMock,
     /* bank pinned at round start: a filing-date switch mid-round must not re-key the round's mistakes/SRS/history */
     bank: filed==="before"?"08":"25"};
+  saveRounds();
   renderPractice();
 }
 function drillCats(){
@@ -628,6 +629,7 @@ function startWeakPractice(){
   pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong:total+1, missed:[], catRes:{}, done:false, senior:false, review:false, weak:true, recorded:false, mock:false,
     /* bank pinned at round start: a filing-date switch mid-round must not re-key the round's mistakes/SRS */
     bank: filed==="before"?"08":"25"};
+  saveRounds();
   renderPractice();
 }
 function practiceAnswer(ok){
@@ -645,6 +647,7 @@ function practiceAnswer(ok){
   const finished = pz.review ? pz.idx>=pz.order.length
     : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
   if(finished) pz.done = true;
+  saveRounds();
   renderPractice();
   window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -659,7 +662,7 @@ function renderPracticeDone(el){
     saveHistory();
     pz.missed.forEach(q=>{ const k=pz.bank+":"+q.n; mistakes.add(k); srsOnMiss(k); }); saveMistakes();
   }
-  if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; pz = null; startMockN400(); return; }
+  if(pz.mock){ if(!mock) mock = {}; mock.civics = {right:pz.right, total:pz.idx, pass}; pz = null; startMockN400(); saveRounds(); return; }
   const bankPrefix = pz.bank+":";
   const bankLeft = [...mistakes].filter(k=>k.startsWith(bankPrefix)).length;
   const headMsg = pz.review
@@ -678,7 +681,8 @@ function renderPracticeDone(el){
     <button class="btn big ghost" id="newtest">${esc(t.backToSetup)}</button>
   </div>`;
   el.querySelector("#retry").onclick = ()=>{ pz.weak?startWeakPractice():startPractice(pz.review?(pz.due?"due":"review"):(pz.senior?"senior":"std")); };
-  el.querySelector("#newtest").onclick = ()=>{ pz=null; renderPractice(); };
+  el.querySelector("#newtest").onclick = ()=>{ pz=null; saveRounds(); renderPractice(); };
+  saveRounds();
 }
 
 /* ---------- english ---------- */
@@ -707,6 +711,7 @@ function renderEnglish(){
 let rp = null;
 function startReadPractice(){
   rp = { order:[...READ_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0 };
+  saveRounds();
   renderReadQ();
 }
 function renderReadQ(){
@@ -721,9 +726,10 @@ function renderReadQ(){
   el.querySelector("#rpOk").onclick = ()=>{ rp.ok++; rpNext(); };
   el.querySelector("#rpNo").onclick = rpNext;
 }
-function rpNext(){ rp.idx++; rp.idx>=3?renderReadDone():renderReadQ(); }
+function rpNext(){ rp.idx++; saveRounds(); rp.idx>=3?renderReadDone():renderReadQ(); }
 function renderReadDone(){ bumpStreak();
-  if(rp.mock){ mock.read = rp.ok; startMockDict(); return; }
+  if(rp.mock){ if(!mock) mock = {}; mock.read = rp.ok; startMockDict(); saveRounds(); return; }
+  saveRounds();
   const t = T(), el = document.getElementById("v-english"), pass = rp.ok>=1;
   el.innerHTML = `<div class="card starscreen"><div class="big">${pass?"🎉":"💪"}</div>
     <h2>${esc(t.readDone)}</h2><p style="color:var(--muted)">${esc(t.readScore(rp.ok))}</p>
@@ -731,13 +737,14 @@ function renderReadDone(){ bumpStreak();
     <button class="btn coral" id="rpAgain">${esc(t.intAgain)}</button>
     <div><button class="btn ghost" id="rpBack">← ${esc(t.writingTitle)}</button></div></div>`;
   el.querySelector("#rpAgain").onclick = startReadPractice;
-  el.querySelector("#rpBack").onclick = ()=>{ rp=null; renderEnglish(); };
+  el.querySelector("#rpBack").onclick = ()=>{ rp=null; saveRounds(); renderEnglish(); };
 }
 /* ---------- mock interview ---------- */
 let mock = null;
 const mockBanner = n => `<div class="mockbanner">${esc(T().mockPhase(n))}</div>`;
 function startMock(){
   mock = {};
+  saveRounds();
   show("english");
   rp = { order:[...READ_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, mock:true };
   renderReadQ();
@@ -768,22 +775,107 @@ function renderMockSummary(){
     <button class="btn coral" id="mockAgain">${esc(t.mockStart)}</button>
     <div><button class="btn ghost" id="mockBack">← ${esc(t.all)}</button></div></div>`;
   el.querySelector("#mockAgain").onclick = startMock;
-  el.querySelector("#mockBack").onclick = ()=>{ mock=null; renderInterview(); };
+  el.querySelector("#mockBack").onclick = ()=>{ mock=null; saveRounds(); renderInterview(); };
   window.scrollTo({top:0});
 }
 /* ---------- dictation ---------- */
 let dz = null;
 let dzMistakes = new Set(readArray("oath_dz_mistakes", isStr));
 const saveDzMistakes = () => localStorage.setItem("oath_dz_mistakes", JSON.stringify([...dzMistakes].slice(0,30)));
+/* ---------- round snapshots: resume after reload ---------- */
+/* pz/rp/dz/ipz/mock live in memory, so a reload used to drop the user back to
+   the setup screen mid-round. A small snapshot is persisted after every state
+   change; on load it is strictly validated and hydrated, and the existing tab
+   guards (renderPractice/renderEnglish/renderInterview) resume the round the
+   same way an in-tab switch does. Learning data was already safe (per-answer
+   saves); this restores position. Finished rounds are never snapshotted, so a
+   reload on a done screen still lands on setup. */
+const ROUNDS_KEY = "oath_rounds";
+function saveRounds(){
+  const snap = {};
+  if(pz && !pz.done && pz.idx < pz.order.length){
+    snap.practice = {bank: pz.bank, ns: pz.order.map(q=>q.n), idx: pz.idx,
+      right: pz.right, wrong: pz.wrong, need: pz.need, maxWrong: pz.maxWrong,
+      missed: pz.missed.map(q=>q.n), catRes: pz.catRes,
+      senior: !!pz.senior, review: !!pz.review, due: !!pz.due, weak: !!pz.weak, mock: !!pz.mock};
+  }
+  if(rp && rp.idx < rp.order.length){
+    snap.reading = {ss: rp.order.slice(), idx: rp.idx, ok: rp.ok, mock: !!rp.mock};
+  }
+  if(dz && dz.idx < dz.order.length){
+    snap.dict = {ss: dz.order.slice(), idx: dz.idx, ok: dz.ok, mock: !!dz.mock, review: !!dz.review};
+  }
+  if(ipz && ipz.idx < ipz.order.length){
+    snap.interview = {items: ipz.order.map(q=>q.item), idx: ipz.idx, ok: ipz.ok,
+      mock: !!ipz.mock, review: !!ipz.review};
+  }
+  if(mock){
+    snap.mock = {read: mock.read|0, dict: mock.dict|0, n400: mock.n400|0,
+      civics: mock.civics ? {right: mock.civics.right|0, total: mock.civics.total|0, pass: !!mock.civics.pass} : null};
+  }
+  try{ localStorage.setItem(ROUNDS_KEY, JSON.stringify(snap)); }catch(e){}
+}
+function validCatRes(v){
+  if(!v || typeof v !== "object" || Array.isArray(v)) return {};
+  const out = {};
+  for(const k of Object.keys(v)){
+    const r = v[k];
+    if(r && typeof r === "object" && Number.isInteger(r.r) && r.r >= 0 && Number.isInteger(r.w) && r.w >= 0) out[k] = {r: r.r, w: r.w};
+  }
+  return out;
+}
+function restoreRounds(){
+  let s; try{ s = JSON.parse(localStorage.getItem(ROUNDS_KEY)); }catch(e){ return; }
+  if(!s || typeof s !== "object" || Array.isArray(s)) return;
+  const isInt = v => Number.isInteger(v) && v >= 0;
+  const p = s.practice;
+  if(p && typeof p === "object" && (p.bank === "08" || p.bank === "25") && Array.isArray(p.ns) && p.ns.length){
+    const bankQ = p.bank === "08" ? QUESTIONS2008 : QUESTIONS;
+    const order = p.ns.filter(Number.isInteger).map(n=>bankQ.find(q=>q.n===n)).filter(Boolean);
+    if(order.length && isInt(p.idx) && p.idx < order.length){
+      pz = {order, idx: p.idx, right: isInt(p.right)?p.right:0, wrong: isInt(p.wrong)?p.wrong:0,
+        need: isInt(p.need)&&p.need>0?p.need:order.length,
+        maxWrong: isInt(p.maxWrong)?p.maxWrong:order.length+1,
+        missed: (Array.isArray(p.missed)?p.missed:[]).filter(Number.isInteger).map(n=>bankQ.find(q=>q.n===n)).filter(Boolean),
+        catRes: validCatRes(p.catRes), done: false, recorded: false,
+        senior: !!p.senior, review: !!p.review, due: !!p.due, weak: !!p.weak, mock: !!p.mock, bank: p.bank};
+    }
+  }
+  const r = s.reading;
+  if(r && typeof r === "object" && Array.isArray(r.ss) && r.ss.length && r.ss.every(x=>typeof x === "string" && READ_SENTENCES.includes(x))
+     && isInt(r.idx) && r.idx < r.ss.length){
+    rp = {order: r.ss.slice(), idx: r.idx, ok: isInt(r.ok)?r.ok:0, mock: !!r.mock};
+  }
+  const z = s.dict;
+  if(z && typeof z === "object" && Array.isArray(z.ss) && z.ss.length && z.ss.every(x=>typeof x === "string" && DICT_SENTENCES.includes(x))
+     && isInt(z.idx) && z.idx < z.ss.length){
+    dz = {order: z.ss.slice(), idx: z.idx, ok: isInt(z.ok)?z.ok:0, mock: !!z.mock, review: !!z.review};
+  }
+  const iv = s.interview;
+  if(iv && typeof iv === "object" && Array.isArray(iv.items) && iv.items.length
+     && iv.items.every(x=>typeof x === "string" && N400.questions.some(q=>q.item===x))
+     && isInt(iv.idx) && iv.idx < iv.items.length){
+    ipz = {order: iv.items.map(it=>N400.questions.find(q=>q.item===it)), idx: iv.idx,
+      ok: isInt(iv.ok)?iv.ok:0, mock: !!iv.mock, review: !!iv.review};
+  }
+  const m = s.mock;
+  if(m && typeof m === "object"){
+    mock = {read: isInt(m.read)?m.read:0, dict: isInt(m.dict)?m.dict:0, n400: isInt(m.n400)?m.n400:0,
+      civics: (m.civics && typeof m.civics === "object") ? {right: isInt(m.civics.right)?m.civics.right:0,
+        total: isInt(m.civics.total)?m.civics.total:0, pass: !!m.civics.pass} : undefined};
+  }
+}
 function normWords(s){ return s.toLowerCase().replace(/[.,!?;:'"]/g,"").split(/\s+/).filter(Boolean); }
 function startDictation(){
   dz = { order:[...DICT_SENTENCES].sort(()=>Math.random()-.5).slice(0,3), idx:0, ok:0, review:false };
+  saveRounds();
   renderDictQ();
 }
 function startDzReview(){
   const ss = DICT_SENTENCES.filter(s=>dzMistakes.has(s));
   if(!ss.length){ renderEnglish(); return; }
   dz = { order:[...ss].sort(()=>Math.random()-.5), idx:0, ok:0, review:true };
+  saveRounds();
   renderDictQ();
 }
 function renderDictQ(){
@@ -791,7 +883,7 @@ function renderDictQ(){
   const n = dz.order.length;
   el.innerHTML = `<div class="card">${dz.mock?mockBanner(2):""}<div class="note">${esc(t.dictQ(dz.idx+1, n))}</div>
     <div class="center"><button class="iconbtn bigbtn" id="dzPlay">${esc(t.dictPlay)}</button></div>
-    <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+    <textarea id="dzIn" class="dictin" rows="2" placeholder="${esc(t.dictPh)}" aria-label="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <div class="center"><button class="btn coral" id="dzCheck">${esc(t.dictCheck)}</button></div></div>`;
   el.querySelector("#dzPlay").onclick = ()=>speak(s, 0.7, true);
   el.querySelector("#dzCheck").onclick = checkDictation;
@@ -810,10 +902,11 @@ function checkDictation(){
     <div class="alabel">${esc(t.dictRight)}</div><p class="dwords">${words}</p>
     ${rawIn.trim()?`<div class="alabel">${esc(t.dictYour)}</div><p class="note">“${esc(rawIn.trim())}”</p>`:""}
     <div class="center"><button class="btn coral" id="dzNext">${esc(t.dictNext)}</button></div></div>`;
-  el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
+  el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; saveRounds(); dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
 function renderDictDone(){ bumpStreak();
-  if(dz.mock){ mock.dict = dz.ok; startMockCivics(); return; }
+  if(dz.mock){ if(!mock) mock = {}; mock.dict = dz.ok; startMockCivics(); saveRounds(); return; }
+  saveRounds();
   const t = T(), el = document.getElementById("v-english");
   const pass = dz.review ? dzMistakes.size===0 : dz.ok>=1;
   const reviewMsg = dz.review ? (dzMistakes.size===0 ? t.clearedAll : t.stillLeft(dzMistakes.size)) : null;
@@ -825,7 +918,7 @@ function renderDictDone(){ bumpStreak();
     <div><button class="btn ghost" id="dzBack">← ${esc(t.writingTitle)}</button></div></div>`;
   const dza = el.querySelector("#dzAgain"); if(dza) dza.onclick = startDictation;
   const dza2 = el.querySelector("#dzAgain2"); if(dza2) dza2.onclick = startDzReview;
-  el.querySelector("#dzBack").onclick = ()=>{ dz=null; renderEnglish(); };
+  el.querySelector("#dzBack").onclick = ()=>{ dz=null; saveRounds(); renderEnglish(); };
 }
 
 /* ---------- interview ---------- */
@@ -887,12 +980,14 @@ function checkHTML(){
 }
 function startInterviewPractice(){
   ipz = { order:[...N400.questions].sort(()=>Math.random()-.5).slice(0,10), idx:0, ok:0, review:false };
+  saveRounds();
   renderInterviewQ();
 }
 function startInterviewReview(){
   const qs = N400.questions.filter(q=>intMistakes.has(q.item));
   if(!qs.length){ renderInterview(); return; }
   ipz = { order:[...qs].sort(()=>Math.random()-.5), idx:0, ok:0, review:true };
+  saveRounds();
   renderInterviewQ();
 }
 function renderInterviewQ(){
@@ -918,10 +1013,11 @@ function interviewAnswer(yes){
       :`<p><b>${esc(t.intMeaning)}:</b> ${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
         <p class="note">${esc(lang==="es"?q.en:q.es)}</p>`}
     <div class="center"><button class="btn coral" id="intNext">${esc(t.intNext)}</button></div></div>`;
-  el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
+  el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; saveRounds(); ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
 }
 function renderInterviewDone(){
-  if(ipz.mock){ mock.n400 = ipz.ok; renderMockSummary(); return; }
+  if(ipz.mock){ if(!mock) mock = {}; mock.n400 = ipz.ok; renderMockSummary(); saveRounds(); return; }
+  saveRounds();
   const t = T(), el = document.getElementById("v-interview");
   const reviewMsg = ipz.review ? (intMistakes.size===0 ? t.clearedAll : t.stillLeft(intMistakes.size)) : null;
   el.innerHTML = `<div class="card starscreen"><div class="big">${ipz.ok>=8||ipz.review?"🎉":"💪"}</div>
@@ -931,7 +1027,7 @@ function renderInterviewDone(){
     <div><button class="btn ghost" id="intBack">← ${esc(t.all)}</button></div></div>`;
   const ag = el.querySelector("#intAgain"); if(ag) ag.onclick = startInterviewPractice;
   const ag2 = el.querySelector("#intAgain2"); if(ag2) ag2.onclick = startInterviewReview;
-  el.querySelector("#intBack").onclick = ()=>{ ipz=null; renderInterview(); };
+  el.querySelector("#intBack").onclick = ()=>{ ipz=null; saveRounds(); renderInterview(); };
 }
 
 /* ---------- process ---------- */
@@ -1020,4 +1116,5 @@ document.addEventListener("click", e=>{
 });
 document.getElementById("langEn").onclick = ()=>{ lang="en"; localStorage.setItem("oath_lang",lang); show(curView); };
 document.getElementById("langEs").onclick = ()=>{ lang="es"; localStorage.setItem("oath_lang",lang); show(curView); };
+restoreRounds();
 show("study");
