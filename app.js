@@ -606,7 +606,9 @@ function startPractice(mode, isMock){
   const total = review ? Math.min(pool.length,20) : (senior?10:(before?10:20));
   const need = review ? Math.ceil(total*0.7) : (senior?6:(before?6:12));
   const maxWrong = review ? total+1 : (senior?5:(before?5:9));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, due, recorded:false, mock:!!isMock};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong, missed:[], catRes:{}, done:false, senior, review, due, recorded:false, mock:!!isMock,
+    /* bank pinned at round start: a filing-date switch mid-round must not re-key the round's mistakes/SRS/history */
+    bank: filed==="before"?"08":"25"};
   renderPractice();
 }
 function drillCats(){
@@ -623,19 +625,21 @@ function startWeakPractice(){
   const total = Math.min(pool.length, before?10:20);
   if(total<3) return;
   const need = Math.min(before?6:12, Math.ceil(total*0.6));
-  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong:total+1, missed:[], catRes:{}, done:false, senior:false, review:false, weak:true, recorded:false, mock:false};
+  pz = {order:pool.slice(0,total), idx:0, right:0, wrong:0, need, maxWrong:total+1, missed:[], catRes:{}, done:false, senior:false, review:false, weak:true, recorded:false, mock:false,
+    /* bank pinned at round start: a filing-date switch mid-round must not re-key the round's mistakes/SRS */
+    bank: filed==="before"?"08":"25"};
   renderPractice();
 }
 function practiceAnswer(ok){
   const q = pz.order[pz.idx];
   const cr = (pz.catRes[q.cat] = pz.catRes[q.cat] || {r:0,w:0});
-  if(ok){ pz.right++; cr.r++; if(pz.review){ srsOnRight(qkey(q.n)); } }
+  if(ok){ pz.right++; cr.r++; if(pz.review){ srsOnRight(pz.bank+":"+q.n); } }
   else { pz.wrong++; cr.w++; pz.missed.push(q);
     /* review/due modes already persist per answer; standard/senior/weak did not
        until round end, so a refresh mid-round silently dropped the learning data.
        Persist the mistake + SRS entry now (idempotent with the round-end write). */
-    if(pz.review){ srsOnWrong(qkey(q.n)); }
-    else { const k = qkey(q.n); mistakes.add(k); srsOnMiss(k); saveMistakes(); }
+    if(pz.review){ srsOnWrong(pz.bank+":"+q.n); }
+    else { const k = pz.bank+":"+q.n; mistakes.add(k); srsOnMiss(k); saveMistakes(); }
   }
   pz.idx++;
   const finished = pz.review ? pz.idx>=pz.order.length
@@ -651,12 +655,12 @@ function renderPracticeDone(el){
     bumpStreak();
     histLog.push({d:new Date().toISOString().slice(0,10),
       mode: pz.review?(pz.due?"due":"review"):(pz.senior?"senior":(pz.weak?"weak":"std")),
-      right:pz.right, total:pz.idx, pass, bank: filed==="before"?"08":"25", cats:pz.catRes});
+      right:pz.right, total:pz.idx, pass, bank: pz.bank, cats:pz.catRes});
     saveHistory();
-    pz.missed.forEach(q=>{ const k=qkey(q.n); mistakes.add(k); srsOnMiss(k); }); saveMistakes();
+    pz.missed.forEach(q=>{ const k=pz.bank+":"+q.n; mistakes.add(k); srsOnMiss(k); }); saveMistakes();
   }
   if(pz.mock){ mock.civics = {right:pz.right, total:pz.idx, pass}; pz = null; startMockN400(); return; }
-  const bankPrefix = (filed==="before"?"08":"25")+":";
+  const bankPrefix = pz.bank+":";
   const bankLeft = [...mistakes].filter(k=>k.startsWith(bankPrefix)).length;
   const headMsg = pz.review
     ? (bankLeft===0 ? t.clearedAll : t.stillLeft(bankLeft))
