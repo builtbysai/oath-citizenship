@@ -327,6 +327,7 @@ en:{
   intVariesFb:"This one depends on your situation. At the real interview, answer truthfully.",
   intDone:"Interview practice complete!", intScore:(s)=>`${s} of 10 correct`,
   intAgain:"Practice again", intNext:"Next →",
+  intYes:"Yes", intNo:"No",
   procTitle:"The road to citizenship", eligH:"Who can apply (5-year path)",
   elig:["Be 18 or older when you file","Be a lawful permanent resident (green card holder) for at least 5 years","Have continuous residence in the U.S. for 5 years before filing","Be physically present in the U.S. at least 30 of the last 60 months","Have lived at least 3 months in the state or USCIS district where you apply","Show good moral character for the 5 years before filing","Be attached to the principles of the U.S. Constitution","Be able to read, write, and speak basic English","Know U.S. history and government (the tests in this app)","Take the Oath of Allegiance"],
   stepsH:"The 8 steps",
@@ -445,6 +446,7 @@ es:{
   intVariesFb:"Esta depende de tu situación. En la entrevista real, responde con la verdad.",
   intDone:"¡Práctica de entrevista completada!", intScore:(s)=>`${s} de 10 correctas`,
   intAgain:"Practicar de nuevo", intNext:"Siguiente →",
+  intYes:"Sí", intNo:"No",
   procTitle:"El camino a la ciudadanía", eligH:"Quién puede solicitar (vía de 5 años)",
   elig:["Tener 18 años o más al presentar la solicitud","Ser residente permanente legal (tener tarjeta verde) por al menos 5 años","Haber residido continuamente en EE. UU. durante 5 años antes de presentar","Haber estado físicamente presente en EE. UU. al menos 30 de los últimos 60 meses","Haber vivido al menos 3 meses en el estado o distrito de USCIS donde solicitas","Demostrar buena conducta moral durante los 5 años anteriores","Estar comprometido con los principios de la Constitución de EE. UU.","Poder leer, escribir y hablar inglés básico","Conocer la historia y el gobierno de EE. UU. (los exámenes de esta app)","Hacer el Juramento de Lealtad"],
   stepsH:"Los 8 pasos",
@@ -883,7 +885,7 @@ function renderPracticeDone(el){
   if(!pz.recorded){
     pz.recorded = true;
     bumpStreak();
-    histLog.push({d:new Date().toISOString().slice(0,10),
+    histLog.push({d:dayStr(new Date()),
       mode: pz.review?(pz.due?"due":"review"):(pz.senior?"senior":(pz.weak?"weak":"std")),
       right:pz.right, total:pz.idx, pass, bank: pz.bank, cats:pz.catRes});
     saveHistory();
