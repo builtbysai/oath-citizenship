@@ -485,7 +485,7 @@ function answerHTML(q){
     const key = q.varies;
     const linkKey = (key==="speaker"||key==="president"||key==="vice president"||key==="chief justice") ? "office" : key;
     const rawAns = q.a[lang].join("; ");
-    const m = rawAns.match(/^(VARIES|VARÍA)\s*[—–-]\s*([^()]+?)\s*\(([^)]*(?:verificado|verified)[^)]*)\)\s*$/i);
+    const m = rawAns.match(/^(VARIES|VARÍA)\s*[:—–-]\s*([^()]+?)\s*\(([^)]*(?:verificado|verified)[^)]*)\)\s*$/i);
     let body = `<div class="warnbox"><b>${esc(t.variesTitle)}.</b> ${esc(t.variesText)}<br>
       <a href="${VARIES_LINK[key]}" target="_blank" rel="noopener">${esc(t.variesLinkLabel[linkKey]||t.variesLinkLabel.office)}</a>`;
     if(m) body += `<br><span class="note">${esc(m[3][0].toUpperCase()+m[3].slice(1))}: <b>${esc(m[2].trim())}</b></span>`;
