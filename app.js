@@ -767,12 +767,12 @@ function renderMockSummary(){
     [t.mockRead, mock.read, 3, mock.read>=1],
     [t.mockDict, mock.dict, 3, mock.dict>=1],
     [t.mockCiv, mock.civics.right, mock.civics.total, mock.civics.pass],
+    [t.mockN400, mock.n400, 8, mock.n400>=8],
   ];
   const allPass = rows.every(r=>r[3]);
   el.innerHTML = `<div class="card starscreen"><div class="big">${allPass?"🎉":"💪"}</div>
     <h2>${esc(t.mockSumH)}</h2>
-    <div class="mockrows">${rows.map(r=>`<div class="mockrow ${r[3]?"ok":"bad"}"><span>${r[3]?"✓":"✗"}</span><span>${esc(r[0])}</span><b>${r[1]}/${r[2]}</b></div>`).join("")}
-    <div class="mockrow"><span>📝</span><span>${esc(t.mockN400)}</span><b>${mock.n400}/8</b></div></div>
+    <div class="mockrows">${rows.map(r=>`<div class="mockrow ${r[3]?"ok":"bad"}"><span>${r[3]?"✓":"✗"}</span><span>${esc(r[0])}</span><b>${r[1]}/${r[2]}</b></div>`).join("")}</div>
     <p class="${allPass?"fb-ok":"fb-bad"}">${esc(allPass?t.mockPassAll:t.mockFailSome)}</p>
     <button class="btn coral" id="mockAgain">${esc(t.mockStart)}</button>
     <div><button class="btn ghost" id="mockBack">← ${esc(t.all)}</button></div></div>`;
