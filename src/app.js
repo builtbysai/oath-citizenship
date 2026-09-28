@@ -279,6 +279,17 @@ let mistakes = new Set(readArray("oath_mistakes", isStr));
 let studyCat = "all", studyStar = false, studyQ = "", curView = "study";
 const T = () => STR[lang];
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+/* Screen-reader announcements. Result surfaces render via innerHTML swaps, which
+   assistive tech never announces, so every verdict moment (round pass/fail,
+   review graduation, mock summary, dictation/interview feedback) is also posted
+   as plain text to the single persistent #sr-live region (role="status").
+   The clear + delayed write re-arms identical consecutive verdicts. */
+function announce(msg){
+  const r = document.getElementById("sr-live");
+  if(!r || !msg) return;
+  r.textContent = "";
+  setTimeout(()=>{ r.textContent = msg; }, 30);
+}
 const saveKnown = () => localStorage.setItem("oath_known", JSON.stringify([...known]));
 const saveHistory = () => localStorage.setItem("oath_history", JSON.stringify(histLog.slice(-20)));
 const saveMistakes = () => localStorage.setItem("oath_mistakes", JSON.stringify([...mistakes].slice(0,500)));
@@ -682,6 +693,7 @@ function renderPracticeDone(el){
     <button class="btn big gold" id="retry">${esc(t.tryAgain)}</button>
     <button class="btn big ghost" id="newtest">${esc(t.backToSetup)}</button>
   </div>`;
+  announce(headMsg);
   el.querySelector("#retry").onclick = ()=>{ pz.weak?startWeakPractice():startPractice(pz.review?(pz.due?"due":"review"):(pz.senior?"senior":"std")); };
   el.querySelector("#newtest").onclick = ()=>{ pz=null; saveRounds(); renderPractice(); };
   saveRounds();
@@ -738,6 +750,7 @@ function renderReadDone(){ bumpStreak();
     <p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>
     <button class="btn coral" id="rpAgain">${esc(t.intAgain)}</button>
     <div><button class="btn ghost" id="rpBack">← ${esc(t.writingTitle)}</button></div></div>`;
+  announce(pass?t.passMsg:t.failMsg);
   el.querySelector("#rpAgain").onclick = startReadPractice;
   el.querySelector("#rpBack").onclick = ()=>{ rp=null; saveRounds(); renderEnglish(); };
 }
@@ -776,6 +789,7 @@ function renderMockSummary(){
     <p class="${allPass?"fb-ok":"fb-bad"}">${esc(allPass?t.mockPassAll:t.mockFailSome)}</p>
     <button class="btn coral" id="mockAgain">${esc(t.mockStart)}</button>
     <div><button class="btn ghost" id="mockBack">← ${esc(t.all)}</button></div></div>`;
+  announce(allPass?t.mockPassAll:t.mockFailSome);
   el.querySelector("#mockAgain").onclick = startMock;
   el.querySelector("#mockBack").onclick = ()=>{ mock=null; saveRounds(); renderInterview(); };
   window.scrollTo({top:0});
@@ -904,6 +918,7 @@ function checkDictation(){
     <div class="alabel">${esc(t.dictRight)}</div><p class="dwords">${words}</p>
     ${rawIn.trim()?`<div class="alabel">${esc(t.dictYour)}</div><p class="note">“${esc(rawIn.trim())}”</p>`:""}
     <div class="center"><button class="btn coral" id="dzNext">${esc(t.dictNext)}</button></div></div>`;
+  announce(right?t.dictCorrect:t.dictWrong);
   el.querySelector("#dzNext").onclick = ()=>{ dz.idx++; saveRounds(); dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
 }
 function renderDictDone(){ bumpStreak();
@@ -918,6 +933,7 @@ function renderDictDone(){ bumpStreak();
       :`<p class="${pass?"fb-ok":"fb-bad"}">${esc(pass?t.passMsg:t.failMsg)}</p>`}
     ${dz.review&&dzMistakes.size?`<button class="btn coral" id="dzAgain2">${esc(t.reviewBtn(dzMistakes.size))}</button>`:`<button class="btn coral" id="dzAgain">${esc(t.intAgain)}</button>`}
     <div><button class="btn ghost" id="dzBack">← ${esc(t.writingTitle)}</button></div></div>`;
+  announce(reviewMsg?reviewMsg:(pass?t.passMsg:t.failMsg));
   const dza = el.querySelector("#dzAgain"); if(dza) dza.onclick = startDictation;
   const dza2 = el.querySelector("#dzAgain2"); if(dza2) dza2.onclick = startDzReview;
   el.querySelector("#dzBack").onclick = ()=>{ dz=null; saveRounds(); renderEnglish(); };
@@ -1015,6 +1031,7 @@ function interviewAnswer(yes){
       :`<p><b>${esc(t.intMeaning)}:</b> ${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
         <p class="note">${esc(lang==="es"?q.en:q.es)}</p>`}
     <div class="center"><button class="btn coral" id="intNext">${esc(t.intNext)}</button></div></div>`;
+  announce(right?t.intCorrect:t.intWrong);
   el.querySelector("#intNext").onclick = ()=>{ ipz.idx++; saveRounds(); ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
 }
 function renderInterviewDone(){
@@ -1027,6 +1044,7 @@ function renderInterviewDone(){
     ${reviewMsg?`<p class="${intMistakes.size===0?"fb-ok":"fb-bad"}">${esc(reviewMsg)}</p>`:""}
     ${ipz.review&&intMistakes.size?`<button class="btn coral" id="intAgain2">${esc(t.reviewBtn(intMistakes.size))}</button>`:`<button class="btn coral" id="intAgain">${esc(t.intAgain)}</button>`}
     <div><button class="btn ghost" id="intBack">← ${esc(t.all)}</button></div></div>`;
+  announce(reviewMsg?reviewMsg:t.intScore(ipz.ok));
   const ag = el.querySelector("#intAgain"); if(ag) ag.onclick = startInterviewPractice;
   const ag2 = el.querySelector("#intAgain2"); if(ag2) ag2.onclick = startInterviewReview;
   el.querySelector("#intBack").onclick = ()=>{ ipz=null; saveRounds(); renderInterview(); };

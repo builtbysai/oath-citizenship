@@ -87,6 +87,10 @@ a{color:var(--blue);}
 .ynrow{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
 .fb-ok{font-size:20px; font-weight:800; color:#2c7a2c; margin:10px 0;}
 .fb-bad{font-size:20px; font-weight:800; color:var(--red); margin:10px 0;}
+/* Visually hidden but exposed to assistive tech: hosts the single persistent
+   live region that announces result verdicts (innerHTML swaps are silent). */
+.sr-only{position:absolute; width:1px; height:1px; margin:-1px; padding:0;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 .dictin{width:100%; box-sizing:border-box; border:2px solid var(--line); border-radius:12px;
   padding:12px 14px; font-size:18px; font-family:inherit; margin:12px 0; resize:vertical;}
 .dictin:focus{outline:none; border-color:var(--navy);}
@@ -211,6 +215,7 @@ select,input[type=text]{font-size:16px; padding:10px 12px; border:1px solid var(
   </div>
 </header>
 <main>
+  <div id="sr-live" class="sr-only" role="status" aria-live="polite"></div>
   <section class="view on" id="v-study"></section>
   <section class="view" id="v-practice"></section>
   <section class="view" id="v-interview"></section>
