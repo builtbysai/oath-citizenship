@@ -73,7 +73,7 @@ a{color:var(--blue);}
 .qhead{display:flex; align-items:flex-start; gap:10px; padding:14px 14px 12px; cursor:pointer;}
 .qnum{flex:0 0 auto; width:34px; height:34px; border-radius:50%; background:var(--navy); color:#fff;
   display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;}
-.qnum.star{background:var(--gold);}
+.qnum.star{background:var(--gold); color:#12233a;}
 .qtext{font-size:17px; font-weight:600; color:var(--ink); flex:1;}
 .qmeta{display:flex; gap:6px; align-items:center; margin-top:6px; flex-wrap:wrap;}
 .tag{font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; letter-spacing:.3px;}
@@ -117,7 +117,7 @@ nav.tabs{position:fixed; left:0; right:0; bottom:0; z-index:50; background:var(-
 .btn{display:inline-block; border:0; border-radius:12px; padding:13px 22px; font-size:16px; font-weight:700;
   cursor:pointer; background:var(--navy); color:#fff; margin:6px 6px 6px 0;}
 .btn.gold{background:var(--gold); color:#12233a;}
-.btn.coral{background:#c26a4d; color:#fff;}
+.btn.coral{background:#ad5a3d; color:#fff;}
 .center{text-align:center;}
 .starscreen{text-align:center;}
 .starscreen .big{font-size:54px; line-height:1.2;}
@@ -187,10 +187,17 @@ select,input[type=text]{font-size:16px; padding:10px 12px; border:1px solid var(
 .chk .box{flex:0 0 22px; height:22px; border:2px solid #c9a227; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:800; margin-top:1px;}
 .chk.done .box{background:#2e7d32; border-color:#2e7d32;}
 .chk.done span:last-child{color:#6b7280; text-decoration:line-through;}
-.chk em{color:#9a7b2d; font-style:normal; font-size:12px;}
+.chk em{color:#8a6d25; font-style:normal; font-size:12px;}
 .chkh{margin:14px 0 4px; font-size:15px;}
 .chkbar{height:10px; background:#eee; border-radius:999px; overflow:hidden; margin:10px 0 4px;}
 .chkfill{height:100%; background:linear-gradient(90deg,#c9a227,#2e7d32); border-radius:999px; transition:width .3s;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  .view.on{animation:none;}
+  .progress > div, .chkfill{transition:none;}
+  .btn:active, .iconbtn:active{transform:none;}
+  .tab.on .ti{transform:none;}
+}
 </style>
 </head>
 <body>
