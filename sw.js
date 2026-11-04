@@ -29,6 +29,10 @@ self.addEventListener('fetch', (e) => {
            within the server's max-age and break the "always fresh when online"
            promise above. Offline still falls back to the cache below. */
         const res = await fetch(e.request, { cache: "no-store" });
+        if (!res.ok) {
+          const old = await cache.match(e.request, { ignoreSearch: true });
+          return old || res;
+        }
         cache.put(e.request, res.clone());
         return res;
       } catch (err) {
@@ -38,7 +42,7 @@ self.addEventListener('fetch', (e) => {
     }
     const hit = await cache.match(e.request, { ignoreSearch: true });
     const refresh = fetch(e.request)
-      .then((res) => { cache.put(e.request, res.clone()); return res; })
+      .then((res) => { if (res.ok) cache.put(e.request, res.clone()); return res; })
       .catch(() => null);
     if (hit) { e.waitUntil(refresh); return hit; }
     const net = await refresh;
