@@ -107,7 +107,7 @@ function answerHTML(q){
     const m = rawAns.match(/^(VARIES|VARÍA)\s*:\s*([^()]+?)\s*\(([^)]*(?:verificado|verified)[^)]*)\)\s*$/i);
     const current = m ? `<p class="answer">${esc(m[2].trim())}</p><p class="muted">${esc(m[3][0].toUpperCase()+m[3].slice(1))}</p>`
       : `<p class="muted">${esc(rawAns.replace(/^(VARIES|VARÍA)\s*/i,""))}</p>`;
-    return `<div class="varies"><p><strong>${esc(t.variesTitle)}.</strong> ${esc(t.variesText)}</p>${current}
+    return `<div class="varies"><p><strong>${esc(t.variesTitle)}.</strong></p>${current}
       <a href="${VARIES_LINK[key]}" target="_blank" rel="noopener">${esc(t.variesLinkLabel[linkKey]||t.variesLinkLabel.office)}</a></div>`;
   }
   return `<ul class="answers" aria-label="${esc(t.answersLabel)}">${q.a[lang].map(a=>`<li>${esc(a)}</li>`).join("")}</ul>`;
@@ -143,7 +143,7 @@ function renderStudy(){
 /* ---------- practice (civics) ---------- */
 function focusHTML(){
   const t = T(), rows = weakestCats();
-  if(!rows.length) return `<p class="muted">${esc(t.focusEmpty)}</p>`;
+  if(!rows.length) return "";
   return `<ul class="list">${rows.map(r=>rowInfo(catLabel(r.c), Math.round(r.acc*100)+"%, "+t.focusTries(r.n))).join("")}</ul>
     <button class="link" id="weakBtn">${esc(t.weakBtn)}</button>`;
 }
@@ -342,7 +342,7 @@ function renderDictQ(){
   el.innerHTML = `${dz.mock?mockBanner(2):""}
     <p class="muted">${esc(t.dictQ(dz.idx+1, dz.order.length))}</p>
     <button class="btn quiet" id="dzPlay">${esc(t.dictPlay)}</button>
-    <textarea id="dzIn" class="input" rows="2" placeholder="${esc(t.dictPh)}" aria-label="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+    <textarea id="dzIn" class="input" rows="2" aria-label="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
     <button class="btn" id="dzCheck">${esc(t.dictCheck)}</button>`;
   const ta = el.querySelector("#dzIn");
   ta.value = dz.draft || "";
@@ -420,7 +420,7 @@ function renderMockSummary(){
     [t.mockN400, mock.n400, 8, mock.n400>=8],
   ];
   const allPass = rows.every(r=>r[3]);
-  const msg = allPass ? t.mockPassAll : t.mockFailSome;
+  const msg = allPass ? t.mockPassAll : t.failMsg;
   el.innerHTML = `<h1 class="title ${allPass?"pass":"fail"}">${esc(msg)}</h1>
     <ul class="list">${rows.map(r=>`<li class="row ${r[3]?"pass":"fail"}"><span class="grow">${esc(r[0])}</span><span class="detail">${r[1]}/${r[2]}</span></li>`).join("")}</ul>
     <button class="btn" id="mockAgain">${esc(t.mockStart)}</button>
@@ -445,7 +445,6 @@ function nqCardHTML(q){
       <p>${esc(other)}</p>
       <p class="muted">${esc(t.intMeaning)}</p>
       <p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
-      ${q.expected==="varies"?`<p class="muted">${esc(t.expVariesNote)}</p>`:""}
       <div class="actions"><button class="link" data-act="speak">${esc(t.listen)}</button></div>
     </div>
   </li>`;
@@ -503,7 +502,7 @@ function renderInterviewResult(){
   el.innerHTML = `<p class="muted">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</p>
     <p class="prompt">${esc(q.en)}</p>
     <p class="verdict ${right?"pass":"fail"}">${esc(right?t.intCorrect:t.intWrong)}</p>
-    ${varies?`<p>${esc(t.expVariesNote)}</p>`
+    ${varies?""
       :`<p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p><p class="muted">${esc(lang==="es"?q.en:q.es)}</p>`}
     <button class="btn" id="intNext">${esc(t.intNext)}</button>`;
   announce(right?t.intCorrect:t.intWrong);
@@ -535,7 +534,7 @@ function renderGuide(){
   el.innerHTML = `${title("guide")}
     ${section(t.eligH, `<ul>${t.elig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`)}
     ${section(t.stepsH, `<ol>${t.steps.map(s=>`<li><strong>${esc(s[0])}</strong> ${esc(s[1])}</li>`).join("")}</ol>`)}
-    ${section(t.feesH, `<ul class="list">${t.feeRows.map(r=>rowInfo(r[0], r[1])).join("")}</ul><p class="muted">${esc(t.feesNote)}</p>`)}
+    ${section(t.feesH, `<ul class="list">${t.feeRows.map(r=>rowInfo(r[0], r[1])).join("")}</ul>`)}
     ${section(t.excH, `<ul>${t.excs.map(e=>`<li><strong>${esc(e[0])}</strong> ${esc(e[1])}</li>`).join("")}</ul>`)}
     ${section(t.checkTitle, `<p class="muted" id="chkCount">${esc(t.checkProgress(n, CHECKLIST.length))}</p>${CHECKLIST.map(item).join("")}
       <p class="muted">${esc(t.checkNote)}</p><button class="link" id="chkReset">${esc(t.checkReset)}</button>`)}
