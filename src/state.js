@@ -98,7 +98,13 @@ function catLabel(enCat){
 
 /* ---------- daily streak ---------- */
 function dayStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
-function getStreak(){ const n = readObject("oath_streak").count; return Number.isFinite(n) ? n : 0; }
+function getStreak(){
+  const st = readObject("oath_streak");
+  if(!Number.isFinite(st.count) || typeof st.last !== "string") return 0;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  return (st.last===dayStr(new Date()) || st.last===dayStr(y)) ? st.count : 0;
+}
+const streakToday = () => readObject("oath_streak").last === dayStr(new Date());
 function bumpStreak(){
   const st = readObject("oath_streak");
   if(!Number.isFinite(st.count)) st.count = 0;
@@ -112,6 +118,12 @@ function bumpStreak(){
   }
   return st.count;
 }
+/* ---------- first launch ---------- */
+const isOnboarded = () => localStorage.getItem("oath_onboarded") === "1" ||
+  known.size > 0 || histLog.length > 0 || mistakes.size > 0 || localStorage.getItem("oath_streak") !== null;
+const setOnboarded = () => localStorage.setItem("oath_onboarded", "1");
+function setFiled(f){ filed = f === "before" ? "before" : "after"; localStorage.setItem("oath_filed", filed); }
+function setIDate(v){ /^\d{4}-\d{2}-\d{2}$/.test(v) ? localStorage.setItem("oath_idate", v) : localStorage.removeItem("oath_idate"); }
 /* ---------- interview countdown ---------- */
 function getIDate(){
   const v = localStorage.getItem("oath_idate") || "";

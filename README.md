@@ -8,6 +8,8 @@ A free, bilingual (English / Español) study app for the U.S. naturalization civ
 - N-400 interview questions (Part 9)
 - Full mock interview
 - Spaced repetition, streaks, interview countdown, read-aloud
+- First-launch setup (language, test version, interview date) that lands in a study session
+- Responsive: bottom bar on phones, sidebar and side-by-side panes on desktop
 
 ## Build
 
@@ -15,7 +17,7 @@ A free, bilingual (English / Español) study app for the U.S. naturalization civ
 python3 src/build.py
 ```
 
-Writes `index.html`, a single file with all scripts and styles inlined. `src/template.html` lists the inputs as `<script src>` and `<link rel="stylesheet">` tags; add a file by adding a tag. Open `index.html` directly or serve the repo root.
+Writes `index.html`, a single file with all scripts and styles inlined. `src/template.html` lists the inputs as `<script src>` and `<link rel="stylesheet">` tags (and holds the SVG icon sprite); add a file by adding a tag. Fonts referenced by `url(fonts/...)` in the CSS are base64-inlined. Open `index.html` directly or serve the repo root.
 
 ## Source layout
 
@@ -26,9 +28,10 @@ Writes `index.html`, a single file with all scripts and styles inlined. `src/tem
 | `src/n400.js` | N-400 Part 9 questions |
 | `src/strings.js` | All UI text in English and Spanish, plus the checklist |
 | `src/state.js` | localStorage state, spaced repetition, streak, countdown, speech, resume snapshots |
-| `src/views.js` | One render function per screen |
+| `src/views.js` | One render function per screen, plus the icon-first controls |
 | `src/app.js` | Router, event handling, startup |
-| `src/style.css` | All styles |
+| `src/style.css` | All styles (mobile first; 760px and 900px breakpoints) |
+| `src/fonts/` | Public Sans and Fraunces (variable woff2), inlined into the build |
 | `sw.js`, `manifest.json` | Offline cache and install manifest |
 
 State is stored in localStorage under keys prefixed `oath_`. Every screen renders from state; there is no framework and no dependency.

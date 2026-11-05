@@ -1,8 +1,9 @@
-/* Views: one render function per screen. Each builds an HTML string into #v-<name>
-   and wires its own controls. State lives in state.js; text lives in strings.js. */
+/* Views: one render function per screen. Each builds an HTML string into #v-<name>.
+   Controls carry data-do="action"; app.js maps actions to functions.
+   State lives in state.js; text lives in strings.js. */
 
 const T = () => STR[lang];
-const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const view = id => document.getElementById("v-"+id);
 const tabLabel = id => T().tabs.find(x => x[0]===id)[1];
 function announce(msg){
@@ -12,62 +13,115 @@ function announce(msg){
   setTimeout(()=>{ r.textContent = msg; }, 30);
 }
 
-/* Small HTML builders shared by several screens. */
-const title = id => `<h1 class="title">${esc(tabLabel(id))}</h1>`;
-const heading = text => `<h2>${esc(text)}</h2>`;
-/* A tappable list row. attrs is a raw attribute string such as 'data-p="std"'. */
-const rowBtn = (attrs, label, detail, sub) =>
-  `<li><button class="row" ${attrs}><span class="grow">${esc(label)}${sub?`<span class="sub">${esc(sub)}</span>`:""}</span>${detail!==undefined&&detail!==""?`<span class="detail">${esc(detail)}</span>`:""}</button></li>`;
-const rowInfo = (label, detail) =>
-  `<li class="row"><span class="grow">${esc(label)}</span><span class="detail">${esc(detail)}</span></li>`;
+/* ---------- builders ---------- */
+const ic = (name, cls) => `<svg class="i${cls?" "+cls:""}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const iconBtn = (icon, label, attrs, cls) =>
+  `<button class="ib${cls?" "+cls:""}" ${attrs||""} aria-label="${esc(label)}" title="${esc(label)}">${ic(icon)}</button>`;
+const bar = pct => `<div class="bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
+const sayBtn = (text, en, rate) =>
+  iconBtn("speaker", T().listen, `data-do="say" data-say="${esc(text)}"${en?' data-en="1"':""}${rate?` data-rate="${rate}"`:""}`, "say");
+/* A large tappable option: icon bubble, title, optional subtitle, optional badge. */
+const opt = (icon, label, sub, attrs, badge) =>
+  `<button class="opt" ${attrs}><span class="opt-i">${ic(icon)}</span><span class="grow"><b>${esc(label)}</b>${sub?`<small>${esc(sub)}</small>`:""}</span>${badge!==undefined&&badge!==""?`<span class="badge">${esc(badge)}</span>`:ic("right","chev")}</button>`;
 const seg = (items, attr, isOn) =>
-  `<div class="seg" role="group">${items.map(([v,lb])=>`<button ${attr}="${esc(v)}" aria-pressed="${isOn(v)}">${esc(lb)}</button>`).join("")}</div>`;
-const bar = pct => `<div class="bar" aria-hidden="true"><div style="width:${pct}%"></div></div>`;
-const mockBanner = n => `<p class="muted">${esc(T().mockPhase(n))}</p>`;
+  `<div class="seg" role="group">${items.map(([v,lb])=>`<button data-do="${attr}" data-v="${esc(v)}" aria-pressed="${isOn(v)}">${esc(lb)}</button>`).join("")}</div>`;
+const pageTitle = id => `<h1 class="page-title">${esc(tabLabel(id))}</h1>`;
+const knownIn = list => list.filter(q=>known.has(qkey(q.n))).length;
+
+/* Session scaffold: top row (exit, progress, count), body, pinned footer. */
+const sess = (pct, count, body, foot, cls) => `<div class="sess ${cls||""}">
+  <div class="sess-top">${iconBtn("x", T().exit, 'data-do="exit"')}${bar(pct)}<span class="count">${esc(count)}</span></div>
+  <div class="sess-body">${body}</div>
+  <div class="sess-foot">${foot||""}</div></div>`;
+const mockSteps = n => `<div class="steps" role="img" aria-label="${esc(T().mockPhase(n))}">${[1,2,3,4].map(i=>`<i${i<=n?' class="on"':""}></i>`).join("")}</div>`;
+const roundBtns = (attr, yesLabel, noLabel) => `<div class="pair">
+  <button class="round no" data-do="${attr}" data-v="n" aria-label="${esc(noLabel)}" title="${esc(noLabel)}">${ic("x")}</button>
+  <button class="round yes" data-do="${attr}" data-v="y" aria-label="${esc(yesLabel)}" title="${esc(yesLabel)}">${ic("check")}</button></div>`;
+const primary = (attrs, label, icon) => `<button class="btn" ${attrs}>${esc(label)}${icon?ic(icon):""}</button>`;
+const quiet = (attrs, label, icon) => `<button class="btn quiet" ${attrs}>${icon?ic(icon):""}${esc(label)}</button>`;
+/* End-of-round panel: score ring, headline, optional extra, actions. */
+function doneHTML(good, headline, right, total, extra, foot){
+  const C = 276.5, off = total ? C*(1-right/total) : C;
+  return `<div class="sess done"><div class="sess-body">
+    <div class="ring big ${good?"good":"warn"}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${off.toFixed(1)}"/></svg>
+      <div class="ring-n"><b>${right}</b><small>/ ${total}</small></div></div>
+    <h1 class="verdict ${good?"pass":"fail"}">${good?ic("check","tick"):""}${esc(headline)}</h1>${extra||""}
+  </div><div class="sess-foot">${foot}</div></div>`;
+}
 
 /* ---------- chrome ---------- */
 let curView = "home";
+const TAB_ICON = {home:"home", study:"cards", practice:"test", english:"abc", interview:"talk", guide:"guide", settings:"sliders"};
+const BAR_TABS = ["home","study","practice","english","interview"];
+function sessionActive(){
+  if(curView==="practice") return !!pz;
+  if(curView==="english") return !!((rp && rp.idx<rp.order.length) || (dz && dz.idx<dz.order.length));
+  if(curView==="interview") return !!((ipz && ipz.idx<ipz.order.length) || (mock && mock.done));
+  return false;
+}
+function langToggle(){
+  return `<button data-do="lang" data-v="en" aria-pressed="${lang==="en"}">EN</button><button data-do="lang" data-v="es" aria-pressed="${lang==="es"}">ES</button>`;
+}
 function renderChrome(){
+  const t = T();
   document.documentElement.lang = lang;
-  document.getElementById("langEn").setAttribute("aria-pressed", lang==="en");
-  document.getElementById("langEs").setAttribute("aria-pressed", lang==="es");
-  document.getElementById("tabs").innerHTML = T().tabs.map(([id,lb]) =>
-    `<button class="tab" data-v="${id}"${curView===id?' aria-current="page"':""}>${esc(lb)}</button>`).join("");
-  document.getElementById("disclaimer").textContent = T().disc;
+  const tab = (id, label, cls) => `<button class="${cls}" data-do="goto" data-v="${id}"${curView===id?' aria-current="page"':""}>${ic(TAB_ICON[id])}<span>${esc(label)}</span></button>`;
+  document.getElementById("tabs").innerHTML =
+    t.tabs.map(([id,lb])=>tab(id,lb,"tab")).join("") + tab("settings", t.settingsH, "tab");
+  document.getElementById("bar").innerHTML = BAR_TABS.map(id=>tab(id,tabLabel(id),"tab")).join("");
+  document.getElementById("top").innerHTML = `<h1 class="top-title">${esc(curView==="home"?"Oath":curView==="settings"?t.settingsH:tabLabel(curView))}</h1>
+    <div class="lang" role="group" aria-label="Language / Idioma">${langToggle()}</div>
+    ${iconBtn("guide", tabLabel("guide"), 'data-do="goto" data-v="guide"'+(curView==="guide"?' aria-current="page"':""))}
+    ${iconBtn("sliders", t.settingsH, 'data-do="goto" data-v="settings"'+(curView==="settings"?' aria-current="page"':""))}`;
+  document.getElementById("langSide").innerHTML = langToggle();
+  document.getElementById("disclaimer").textContent = t.disc;
+  document.getElementById("app").classList.toggle("focus", sessionActive());
 }
 
 /* ---------- home ---------- */
+function nextStep(){
+  const t = T(), due = dueCount(), unseen = unseenCount();
+  if(due>0) return {act:"due", label:t.heroDue(due), icon:"redo"};
+  if(unseen>0) return {act:"study", label:t.heroStudy, sub:t.leftCount(unseen), icon:"play"};
+  return {act:"practice", label:t.heroTest, icon:"test"};
+}
 function renderHome(){
   const t = T(), el = view("home");
-  const total = Q().length, knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  const due = dueCount(), unseen = unseenCount(), streak = getStreak();
-  const date = getIDate(), n = daysLeft();
-  const dated = date !== "" && n !== null;
-  const headline = !dated ? "" : n < 0 ? t.cdPast : n === 0 ? t.cdToday : t.interviewIn(n);
-  el.innerHTML = `
-    ${headline?`<h1 class="title">${esc(headline)}</h1>`:""}
-    <ul class="list">
-      ${due>0?rowBtn('data-home="due"', t.dueLine(due), due):""}
-      ${weakestCats().length?rowBtn('data-home="weak"', t.weakLine):""}
-      ${unseen>0?rowBtn('data-home="new"', t.newLine, unseen):""}
-      ${rowBtn('data-home="practice"', t.practiceLine)}
-      ${rowBtn('id="mockStart"', t.mockH)}
-    </ul>
-    <p class="stat">${esc(t.knownCount(knownN, total))}</p>
-    ${bar(total ? knownN/total*100 : 0)}
-    ${streak?`<p class="muted">${esc(t.streakLine(streak))}</p>`:""}
-    <h2>${esc(t.filingTitle)}</h2>
-    ${seg([["before",t.filedBefore],["after",t.filedAfter]], "data-f", v=>filed===v)}
-    <h2>${esc(t.cdDate)}</h2>
-    <div class="field">
-      <input type="date" id="cdDate" value="${esc(date)}" aria-label="${esc(t.cdDate)}">
-      ${dated?`<button class="link" id="cdClear">${esc(t.cdClear)}</button>`:""}
-    </div>`;
-  el.querySelector("#mockStart").onclick = startMock;
+  const total = Q().length, knownN = knownIn(Q());
+  const streak = getStreak(), n = daysLeft(), hasDate = getIDate() !== "" && n !== null;
+  const cd = !hasDate ? t.cdAdd : n < 0 ? t.cdPast : n === 0 ? t.cdToday : t.interviewIn(n);
+  const next = nextStep();
+  const off = total ? 276.5*(1-knownN/total) : 276.5;
+  const mcount = [...mistakes].filter(k=>k.startsWith(filed==="before"?"08:":"25:")).length;
+  const tile = (icon, label, act) => `<button class="tile" data-do="${act}">${ic(icon)}<span>${esc(label)}</span></button>`;
+  el.innerHTML = `<div class="wrap home">
+    <section class="hero">
+      <div class="ring ${knownN===total&&total?"good":""}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(t.knownCount(knownN,total))}"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${off.toFixed(1)}"/></svg>
+        <div class="ring-n"><b>${knownN}</b><small>${esc(t.ofTotal(total))}</small></div></div>
+      <div class="hero-side">
+        <div class="chip streak${streakToday()?" lit":""}" ${streak?"":"hidden"}>${ic("flame")}<span>${esc(t.streakLine(streak))}</span></div>
+        <button class="chip" data-do="goto" data-v="settings">${ic("cal")}<span>${esc(cd)}</span></button>
+      </div>
+      <button class="cta" data-do="${next.act}">${ic(next.icon)}<span class="grow"><b>${esc(next.label)}</b>${next.sub?`<small>${esc(next.sub)}</small>`:""}</span>${ic("right","chev")}</button>
+    </section>
+    <section class="tiles">
+      ${tile("test", t.tilePractice, "practice")}
+      ${tile("award", t.tileMock, "mock")}
+      ${weakestCats().length?tile("target", t.weakLine, "weak"):""}
+      ${mcount?tile("redo", t.reviewLabel, "review"):""}
+    </section>
+    <section class="topics wide-only">
+      <h2>${esc(t.topicsH)}</h2>
+      <ul>${cats().map(c=>{
+        const p = catProgress(c), full = p.total && p.known===p.total;
+        return `<li><button class="topic" data-do="topic" data-c="${esc(c)}"><span class="grow">${esc(catLabel(c))}</span>${full?ic("check","tick"):`<span class="detail">${p.known}/${p.total}</span>`}${bar(p.pct)}</button></li>`;
+      }).join("")}</ul>
+    </section></div>`;
 }
 
-/* ---------- study ---------- */
-let studyCat = "all", studyStar = false, studyQ = "";
+/* ---------- study: flashcards + list ---------- */
+let studyCat = "all", studyStar = false, studyQ = "", studyIdx = 0, studyShown = false, studyEnd = false,
+    studyPane = "card", studyFresh = true;
 function filteredQuestions(){
   let list = Q().filter(q=>{
     if(studyStar && !q.star) return false;
@@ -81,22 +135,9 @@ function filteredQuestions(){
     q.a.en.join(" ").toLowerCase().includes(sq) || q.a.es.join(" ").toLowerCase().includes(sq));
   return list;
 }
-function qCardHTML(q){
-  const t = T(), cat = lang==="es" ? q.cat_es : q.cat, isKnown = known.has(qkey(q.n));
-  return `<li class="q${isKnown?" known":""}" data-n="${q.n}">
-    <button class="qhead" data-act="toggle" aria-expanded="false">
-      <span class="qn">${q.n}</span>
-      <span class="grow"><span class="qt">${esc(q.q[lang])}</span>
-      <span class="sub">${esc(cat)}${q.star?" · 65/20":""}</span></span>
-    </button>
-    <div class="qbody">
-      ${answerHTML(q)}
-      <div class="actions">
-        <button class="link" data-act="speak">${esc(t.listen)}</button>
-        <button class="link" data-act="known" aria-pressed="${isKnown}">${esc(t.knowIt)}</button>
-      </div>
-    </div>
-  </li>`;
+function studyReset(){
+  const list = filteredQuestions(), i = list.findIndex(q=>!known.has(qkey(q.n)));
+  studyIdx = i < 0 ? 0 : i; studyShown = false; studyEnd = false;
 }
 function answerHTML(q){
   const t = T();
@@ -107,91 +148,133 @@ function answerHTML(q){
     const m = rawAns.match(/^(VARIES|VARÍA)\s*:\s*([^()]+?)\s*\(([^)]*(?:verificado|verified)[^)]*)\)\s*$/i);
     const current = m ? `<p class="answer">${esc(m[2].trim())}</p><p class="muted">${esc(m[3][0].toUpperCase()+m[3].slice(1))}</p>`
       : `<p class="muted">${esc(rawAns.replace(/^(VARIES|VARÍA)\s*/i,""))}</p>`;
-    return `<div class="varies"><p><strong>${esc(t.variesTitle)}.</strong></p>${current}
+    return `<div class="varies"><p><strong>${esc(t.variesTitle)}</strong></p>${current}
       <a href="${VARIES_LINK[key]}" target="_blank" rel="noopener">${esc(t.variesLinkLabel[linkKey]||t.variesLinkLabel.office)}</a></div>`;
   }
   return `<ul class="answers" aria-label="${esc(t.answersLabel)}">${q.a[lang].map(a=>`<li>${esc(a)}</li>`).join("")}</ul>`;
 }
 function renderStudy(){
   const t = T(), el = view("study");
-  const knownN = Q().filter(q=>known.has(qkey(q.n))).length;
-  const browsing = studyCat==="all" && !studyStar && !studyQ.trim();
-  const body = browsing
-    ? `<ul class="list">${cats().map(c=>{ const p = catProgress(c); return rowBtn(`data-c="${esc(c)}"`, catLabel(c), p.known+" / "+p.total); }).join("")}</ul>`
-    : `${studyCat!=="all"?heading(catLabel(studyCat)):""}<ul class="list" id="qlist"></ul>`;
-  el.innerHTML = `${title("study")}
-    <p class="stat">${esc(t.knownCount(knownN, Q().length))}</p>
-    ${bar(knownN/Q().length*100)}
-    <input id="qsearch" class="search" type="search" placeholder="${esc(t.searchPh)}" value="${esc(studyQ)}" aria-label="${esc(t.searchPh)}">
-    <div class="seg" role="group">
-      <button data-c="all" aria-pressed="${!studyStar}">${esc(t.all)}</button>
-      <button data-s="1" aria-pressed="${studyStar}">65/20</button>
+  if(studyFresh){ studyReset(); studyFresh = false; }
+  el.innerHTML = `<div class="wrap fill study" data-pane="${studyPane}">
+    <div class="tools">
+      <label class="select"><select id="studyCat" aria-label="${esc(t.topicsH)}">
+        <option value="all"${studyCat==="all"?" selected":""}>${esc(t.allTopics)}</option>
+        ${cats().map(c=>{ const p = catProgress(c); return `<option value="${esc(c)}"${studyCat===c?" selected":""}>${esc(catLabel(c))} (${p.known}/${p.total})</option>`; }).join("")}
+      </select>${ic("down")}</label>
+      <button class="chip toggle" data-do="star" aria-pressed="${studyStar}">${ic("star")}<span>65/20</span></button>
+      <div class="views" role="group">
+        ${iconBtn("cards", t.viewCards, `data-do="pane" data-v="card" aria-pressed="${studyPane==="card"}"`)}
+        ${iconBtn("list", t.viewList, `data-do="pane" data-v="list" aria-pressed="${studyPane==="list"}"`)}
+      </div>
     </div>
-    ${body}`;
-  const ql = el.querySelector("#qlist");
-  if(ql){
-    const list = filteredQuestions();
-    ql.innerHTML = list.length ? list.map(qCardHTML).join("") : `<li class="muted">${esc(t.noResults)}</li>`;
+    <div class="pane pane-list">
+      <label class="search">${ic("search")}<input id="qsearch" type="search" placeholder="${esc(t.searchPh)}" value="${esc(studyQ)}" aria-label="${esc(t.searchPh)}" autocomplete="off"></label>
+      <ul class="qlist" id="qlist"></ul>
+    </div>
+    <div class="pane pane-card" id="studyCard"></div></div>`;
+  fillStudyList(); fillStudyCard();
+}
+function fillStudyList(){
+  const t = T(), list = filteredQuestions(), ul = document.getElementById("qlist");
+  if(!ul) return;
+  ul.innerHTML = list.length ? list.map((q,i)=>{
+    const k = known.has(qkey(q.n));
+    return `<li><button class="qrow${i===studyIdx&&!studyEnd?" cur":""}${k?" known":""}" data-do="pick" data-i="${i}">
+      <span class="qn">${q.n}</span><span class="grow">${esc(q.q[lang])}</span>${k?ic("check","tick"):""}</button></li>`;
+  }).join("") : `<li class="empty">${esc(t.noResults)}</li>`;
+  const cur = ul.querySelector(".cur"); if(cur && cur.scrollIntoView) cur.scrollIntoView({block:"nearest"});
+}
+function fillStudyCard(){
+  const t = T(), list = filteredQuestions(), el = document.getElementById("studyCard");
+  if(!el) return;
+  if(!list.length){ el.innerHTML = `<p class="empty">${esc(t.noResults)}</p>`; return; }
+  const kn = knownIn(list);
+  if(studyEnd){
+    const all = kn===list.length;
+    el.innerHTML = `<div class="fc end"><div class="ring big ${all?"good":"warn"}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${(276.5*(1-kn/list.length)).toFixed(1)}"/></svg>
+        <div class="ring-n"><b>${kn}</b><small>/ ${list.length}</small></div></div>
+      <h2 class="verdict ${all?"pass":""}">${all?ic("check","tick"):""}${esc(all?t.deckAll:t.deckEnd)}</h2>
+      <div class="end-actions">${primary('data-do="restart"', t.startOver, "redo")}${quiet('data-do="practice"', t.tilePractice, "test")}</div></div>`;
+    return;
   }
-  const si = el.querySelector("#qsearch");
-  si.addEventListener("input", ()=>{
-    studyQ = si.value; renderStudy();
-    const again = view("study").querySelector("#qsearch"); again.focus(); again.setSelectionRange(studyQ.length, studyQ.length);
-  });
+  if(studyIdx >= list.length) studyIdx = list.length-1;
+  const q = list[studyIdx], k = known.has(qkey(q.n));
+  const say = q.q[lang] + ". " + q.a[lang].join(", ");
+  el.innerHTML = `<div class="fc">
+    <div class="fc-head"><span class="pos">${studyIdx+1} / ${list.length}</span>${bar(kn/list.length*100)}</div>
+    <div class="fc-card">
+      <div class="fc-meta"><span>${esc(lang==="es"?q.cat_es:q.cat)}${q.star?" · 65/20":""}</span>${sayBtn(say)}</div>
+      <p class="fc-q"><span class="qn">${q.n}</span>${esc(q.q[lang])}</p>
+      <div class="fc-a">${studyShown ? answerHTML(q) : `<button class="btn quiet" data-do="reveal">${esc(t.showAnswer)}</button>`}</div>
+    </div>
+    <div class="fc-foot">
+      ${iconBtn("left", t.prev, `data-do="prev"${studyIdx===0?" disabled":""}`, "lg")}
+      <button class="checkbtn${k?" on":""}" data-do="known" aria-pressed="${k}" aria-label="${esc(t.knowIt)}" title="${esc(t.knowIt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
+      ${iconBtn("right", t.next, 'data-do="next"', "lg")}
+    </div></div>`;
+}
+function studyStep(d){
+  const len = filteredQuestions().length;
+  studyShown = false;
+  if(d>0 && studyIdx >= len-1) studyEnd = true;
+  else if(d>0) studyIdx++;
+  else if(studyEnd) studyEnd = false;
+  else studyIdx = Math.max(0, studyIdx-1);
+  fillStudyList(); fillStudyCard();
+}
+function studyToggleKnown(btn){
+  const list = filteredQuestions(), q = list[studyIdx];
+  if(!q || studyEnd) return;
+  const k = qkey(q.n), now = !known.has(k);
+  now ? known.add(k) : known.delete(k);
+  saveKnown();
+  if(now) bumpStreak();
+  btn.classList.toggle("on", now); btn.setAttribute("aria-pressed", now);
+  if(!now){ fillStudyList(); return; }
+  btn.classList.add("pop");
+  btn.disabled = true;
+  setTimeout(()=>{ if(curView==="study"){ studyStep(1); renderChrome(); } }, 480);
 }
 
 /* ---------- practice (civics) ---------- */
-function focusHTML(){
-  const t = T(), rows = weakestCats();
-  if(!rows.length) return "";
-  return `<ul class="list">${rows.map(r=>rowInfo(catLabel(r.c), Math.round(r.acc*100)+"%, "+t.focusTries(r.n))).join("")}</ul>
-    <button class="link" id="weakBtn">${esc(t.weakBtn)}</button>`;
-}
-function historyHTML(){
-  const t = T();
-  if(!histLog.length) return `<p class="muted">${esc(t.historyEmpty)}</p>`;
-  return `<ul class="list">${histLog.slice(-5).reverse().map(h=>{
-    const bank = h.bank==="08" ? "2008" : h.bank==="25" ? "2025" : "";
-    return rowInfo(h.right+"/"+h.total+" "+(h.pass?t.passMsg:t.failMsg), (bank?bank+", ":"")+h.d);
-  }).join("")}</ul>`;
-}
 function renderPractice(){
   const el = view("practice");
   if(!pz) renderPracticeSetup(el);
   else if(pz.done) renderPracticeDone(el);
   else renderPracticeQuestion(el);
+  renderChrome();
 }
 function renderPracticeSetup(el){
   const t = T(), before = filed==="before";
   const bank = before ? "08:" : "25:";
   const mcount = [...mistakes].filter(k=>k.startsWith(bank)).length, d = dueCount();
-  el.innerHTML = `${title("practice")}
-    <ul class="list">
-      ${rowBtn('data-p="std"', before?t.testStd08:t.testStd, "", before?t.testStdDesc08:t.testStdDesc)}
-      ${rowBtn('data-p="senior"', t.testSenior, "", t.testSeniorDesc)}
-      ${mcount?rowBtn('data-p="review"', t.reviewBtn(mcount)):""}
-      ${d?rowBtn('data-p="due"', t.dueBtn(d)):""}
-    </ul>
-    ${heading(t.focusH)}${focusHTML()}
-    ${heading(t.historyH)}${historyHTML()}`;
-  const wb = el.querySelector("#weakBtn");
-  if(wb) wb.onclick = ()=>startWeakPractice();
+  const focus = weakestCats(), hist = histLog.slice(-6).reverse();
+  el.innerHTML = `<div class="wrap two">${pageTitle("practice")}
+    <div class="col"><div class="opts">
+      ${opt("test", before?t.testStd08:t.testStd, before?t.testStdDesc08:t.testStdDesc, 'data-do="start" data-p="std"')}
+      ${opt("star", t.testSenior, t.testSeniorDesc, 'data-do="start" data-p="senior"')}
+      ${opt("award", t.mockH, t.mockSub, 'data-do="mock"')}
+      ${d?opt("cal", t.dueLabel, "", 'data-do="start" data-p="due"', d):""}
+      ${mcount?opt("redo", t.reviewLabel, "", 'data-do="start" data-p="review"', mcount):""}
+      ${focus.length?opt("target", t.weakLine, "", 'data-do="weak"'):""}
+    </div></div>
+    <div class="col">
+      ${hist.length?`<section><h2>${esc(t.historyH)}</h2><ul class="hist">${hist.map(h=>
+        `<li class="${h.pass?"pass":"fail"}"><b>${h.right}/${h.total}</b>${h.pass?ic("check"):ic("redo")}<small>${esc(h.d.slice(5))}</small></li>`).join("")}</ul></section>`:""}
+      ${focus.length?`<section><h2>${esc(t.focusH)}</h2><ul class="focus">${focus.map(r=>
+        `<li><span class="grow">${esc(catLabel(r.c))}</span><span class="detail">${Math.round(r.acc*100)}%</span>${bar(r.acc*100)}</li>`).join("")}</ul></section>`:""}
+    </div></div>`;
 }
 function renderPracticeQuestion(el){
-  const t = T(), q = pz.order[pz.idx];
-  el.innerHTML = `${pz.mock?mockBanner(3):""}
-    <p class="muted split"><span>${esc(t.qNum(pz.idx+1))}${q.cat?", "+esc(catLabel(q.cat)):""}</span>
-      <span>${esc(t.correctToPass(pz.need))}, ${esc(t.wrongs(pz.wrong))}</span></p>
-    ${bar(pz.idx/pz.order.length*100)}
-    <p class="prompt">${esc(q.q[lang])}</p>
-    <button class="link" id="hear">${esc(t.listen)}</button>
-    <div id="pans"><button class="btn" id="showA">${esc(t.showAnswer)}</button></div>`;
-  el.querySelector("#hear").onclick = ()=>speak(q.q[lang]);
-  el.querySelector("#showA").onclick = ()=>{
-    el.querySelector("#pans").innerHTML = answerHTML(q) + `<div class="pair">
-      <button class="btn" data-r="y">${esc(t.iKnew)}</button>
-      <button class="btn quiet" data-r="n">${esc(t.iMissed)}</button></div>`;
-  };
+  const t = T(), q = pz.order[pz.idx], shown = !!pz.shown;
+  const body = `${pz.mock?mockSteps(3):""}
+    <div class="tally" aria-label="${esc(t.correctToPass(pz.need)+", "+t.wrongs(pz.wrong))}"><span class="ok">${ic("check")}${pz.right}/${pz.need}</span><span class="no">${ic("x")}${pz.wrong}</span></div>
+    ${q.cat?`<p class="eyebrow">${esc(catLabel(q.cat))}</p>`:""}
+    <div class="prompt-row"><h2 class="prompt">${esc(q.q[lang])}</h2>${sayBtn(q.q[lang])}</div>
+    ${shown?`<div class="reveal">${answerHTML(q)}</div>`:""}`;
+  const foot = shown ? roundBtns("grade", t.iKnew, t.iMissed) : primary('data-do="pshow"', t.showAnswer);
+  el.innerHTML = sess(pz.idx/pz.order.length*100, (pz.idx+1)+" / "+pz.order.length, body, foot);
 }
 function startPractice(mode, isMock){
   const review = mode==="review"||mode==="due", due = mode==="due", senior = mode==="senior", before = filed==="before";
@@ -235,13 +318,12 @@ function practiceAnswer(ok){
     if(pz.review) srsOnMiss(k);
     else { mistakes.add(k); srsOnMiss(k); saveMistakes(); }
   }
-  pz.idx++;
+  pz.idx++; pz.shown = false;
   const finished = pz.review ? pz.idx>=pz.order.length
     : (pz.right>=pz.need || pz.wrong>=pz.maxWrong || pz.idx>=pz.order.length);
   if(finished) pz.done = true;
   saveRounds();
   renderPractice();
-  window.scrollTo({top:0, behavior:"smooth"});
 }
 function renderPracticeDone(el){
   const t = T(), pass = pz.right>=pz.need;
@@ -258,97 +340,96 @@ function renderPracticeDone(el){
   const bankLeft = [...mistakes].filter(k=>k.startsWith(pz.bank+":")).length;
   const good = pz.review ? bankLeft===0 : pass;
   const headMsg = pz.review ? (bankLeft===0 ? t.clearedAll : t.stillLeft(bankLeft)) : (pass ? t.passMsg : t.failMsg);
-  el.innerHTML = `<h1 class="title ${good?"pass":"fail"}">${esc(headMsg)}</h1>
-    <p class="stat"><span class="num">${pz.right}/${pz.idx}</span></p>
-    ${pz.missed.length?`${heading(t.reviewMissed)}<ul class="list">${pz.missed.map(q=>
-      `<li class="row"><span class="grow">${q.n}. ${esc(q.q[lang])}<span class="sub">${esc(q.a[lang].join(", "))}</span></span></li>`).join("")}</ul>`:""}
-    <button class="btn" id="retry">${esc(t.tryAgain)}</button>
-    <button class="link" id="newtest">${esc(t.backToSetup)}</button>`;
+  const missed = pz.missed.length ? `<div class="missed"><h2>${esc(t.reviewMissed)}</h2><ul>${pz.missed.map(q=>
+      `<li><span class="qn">${q.n}</span><span class="grow">${esc(q.q[lang])}<small>${esc(q.a[lang].join(", "))}</small></span></li>`).join("")}</ul></div>` : "";
+  el.innerHTML = doneHTML(good, headMsg, pz.right, pz.idx, missed,
+    primary('data-do="retry"', t.tryAgain, "redo") + quiet('data-do="exit"', t.backToSetup));
   announce(headMsg);
-  el.querySelector("#retry").onclick = ()=>{ pz.weak ? startWeakPractice() : startPractice(pz.review?(pz.due?"due":"review"):(pz.senior?"senior":"std")); };
-  el.querySelector("#newtest").onclick = ()=>{ pz=null; saveRounds(); renderPractice(); };
   saveRounds();
 }
 
 /* ---------- english: reading, dictation ---------- */
+let engVocab = null;
 function renderEnglish(){
   if(rp && rp.idx < rp.order.length){ renderReadQ(); return; }
   if(dz && dz.idx < dz.order.length){ renderDictQ(); return; }
+  if(rp && rp.done){ renderReadDone(); return; }
+  if(dz && dz.done){ renderDictDone(); return; }
   const t = T(), el = view("english");
-  const words = arr => `<p class="words">${arr.map(w=>`<button class="word" data-w="${esc(w)}">${esc(w)}</button>`).join(" ")}</p>`;
-  el.innerHTML = `${title("english")}
-    ${heading(t.speakH)}<p>${esc(t.speakP)}</p>
-    ${heading(t.readH)}<p>${esc(t.readRule)}</p>
-    <ul class="list">${rowBtn('id="readStart"', t.readStart)}</ul>
-    <details><summary>${esc(t.readVocab)}</summary>${words(READING_VOCAB)}</details>
-    ${heading(t.dictH)}<p>${esc(t.dictRule)}</p>
-    <ul class="list">
-      ${rowBtn('id="dictStart"', t.dictStart)}
-      ${dzMistakes.size?rowBtn('id="dzReview"', t.reviewBtn(dzMistakes.size)):""}
-    </ul>
-    <details><summary>${esc(t.writeVocab)}</summary>${words(WRITING_VOCAB)}</details>`;
-  el.querySelector("#dictStart").onclick = startDictation;
-  el.querySelector("#readStart").onclick = startReadPractice;
-  const dzr = el.querySelector("#dzReview"); if(dzr) dzr.onclick = startDzReview;
-  el.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>speak(b.dataset.w, 0, true));
+  if(engVocab){
+    const words = engVocab==="read" ? READING_VOCAB : WRITING_VOCAB;
+    el.innerHTML = `<div class="wrap"><div class="subhead">${iconBtn("left", t.back, 'data-do="vocab" data-v=""')}<h1>${esc(engVocab==="read"?t.readVocab:t.writeVocab)}</h1></div>
+      <p class="words">${words.map(w=>`<button class="word" data-do="say" data-en="1" data-say="${esc(w)}">${esc(w)}</button>`).join("")}</p></div>`;
+    renderChrome(); return;
+  }
+  const panel = (icon, title, rule, start, extra) => `<section class="panel">
+    <div class="panel-h"><span class="opt-i">${ic(icon)}</span><h2>${esc(title)}</h2></div><p>${esc(rule)}</p>
+    <div class="panel-a">${start}${extra}</div></section>`;
+  el.innerHTML = `<div class="wrap two">${pageTitle("english")}
+    <div class="col">${panel("book", t.readH, t.readRule,
+        primary('data-do="readStart"', t.start, "play"),
+        quiet('data-do="vocab" data-v="read"', t.vocab, "list"))}
+      <section class="panel plain"><div class="panel-h"><span class="opt-i">${ic("mic")}</span><h2>${esc(t.speakH)}</h2></div><p>${esc(t.speakP)}</p></section></div>
+    <div class="col">${panel("pen", t.dictH, t.dictRule,
+        primary('data-do="dictStart"', t.start, "play"),
+        quiet('data-do="vocab" data-v="write"', t.vocab, "list") +
+        (dzMistakes.size?quiet('data-do="dzReview"', t.reviewLabel+" ("+dzMistakes.size+")", "redo"):""))}</div></div>`;
+  renderChrome();
 }
 function startReadPractice(){
   rp = { order:shuffled(READ_SENTENCES).slice(0,3), idx:0, ok:0 };
+  dz = null;
   saveRounds();
-  renderReadQ();
+  renderEnglish();
 }
 function renderReadQ(){
   const t = T(), el = view("english"), s = rp.order[rp.idx];
-  el.innerHTML = `${rp.mock?mockBanner(1):""}
-    <p class="muted">${esc(t.readQ(rp.idx+1, 3))}</p>
-    <p class="prompt">${esc(s)}</p>
-    <button class="link" id="rpHear">${esc(t.readAloud)}</button>
-    <div class="pair"><button class="btn" id="rpOk">${esc(t.readOk)}</button>
-    <button class="btn quiet" id="rpNo">${esc(t.readNo)}</button></div>`;
-  el.querySelector("#rpHear").onclick = ()=>speak(s, 0, true);
-  el.querySelector("#rpOk").onclick = ()=>{ rp.ok++; rpNext(); };
-  el.querySelector("#rpNo").onclick = rpNext;
+  const body = `${rp.mock?mockSteps(1):""}<div class="prompt-row"><h2 class="prompt">${esc(s)}</h2>${sayBtn(s, true)}</div>`;
+  el.innerHTML = sess(rp.idx/3*100, t.readQ(rp.idx+1,3), body, roundBtns("rpGrade", t.readOk, t.readNo));
+  renderChrome();
 }
-function rpNext(){ rp.idx++; saveRounds(); rp.idx>=3?renderReadDone():renderReadQ(); }
-function renderReadDone(){
-  bumpStreak();
-  if(rp.mock){ if(!mock) mock = {}; mock.read = rp.ok; startMockDict(); saveRounds(); return; }
+function rpNext(ok){
+  if(ok) rp.ok++;
+  rp.idx++;
   saveRounds();
-  const t = T(), el = view("english"), pass = rp.ok>=1;
-  el.innerHTML = `<h1 class="title ${pass?"pass":"fail"}">${esc(pass?t.passMsg:t.failMsg)}</h1>
-    <p class="stat"><span class="num">${rp.ok}/3</span></p>
-    <button class="btn" id="rpAgain">${esc(t.intAgain)}</button>
-    <button class="link" id="rpBack">${esc(tabLabel("english"))}</button>`;
-  announce(pass?t.passMsg:t.failMsg);
-  el.querySelector("#rpAgain").onclick = startReadPractice;
-  el.querySelector("#rpBack").onclick = ()=>{ rp=null; saveRounds(); renderEnglish(); };
+  if(rp.idx>=3) renderReadDone(); else renderReadQ();
+}
+function renderReadDone(){
+  if(!rp.done){ rp.done = true; bumpStreak(); }
+  if(rp.mock){ if(!mock) mock = {}; mock.read = rp.ok; rp = null; startMockDict(); saveRounds(); return; }
+  saveRounds();
+  const t = T(), el = view("english"), pass = rp.ok>=1, msg = pass?t.passMsg:t.failMsg;
+  el.innerHTML = doneHTML(pass, msg, rp.ok, 3, "",
+    primary('data-do="readStart"', t.intAgain, "redo") + quiet('data-do="exit"', tabLabel("english")));
+  announce(msg);
+  renderChrome();
 }
 function startDictation(){
   dz = { order:shuffled(DICT_SENTENCES).slice(0,3), idx:0, ok:0, review:false };
+  rp = null;
   saveRounds();
-  renderDictQ();
+  renderEnglish();
 }
 function startDzReview(){
   const ss = DICT_SENTENCES.filter(s=>dzMistakes.has(s));
   if(!ss.length){ renderEnglish(); return; }
   dz = { order:shuffled(ss), idx:0, ok:0, review:true };
+  rp = null;
   saveRounds();
-  renderDictQ();
+  renderEnglish();
 }
 function normWords(s){ return s.toLowerCase().replace(/[.,!?;:'"]/g,"").split(/\s+/).filter(Boolean); }
 function renderDictQ(){
   if(dz.res){ renderDictResult(); return; }
   const t = T(), el = view("english"), s = dz.order[dz.idx];
-  el.innerHTML = `${dz.mock?mockBanner(2):""}
-    <p class="muted">${esc(t.dictQ(dz.idx+1, dz.order.length))}</p>
-    <button class="btn quiet" id="dzPlay">${esc(t.dictPlay)}</button>
-    <textarea id="dzIn" class="input" rows="2" aria-label="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
-    <button class="btn" id="dzCheck">${esc(t.dictCheck)}</button>`;
+  const body = `${dz.mock?mockSteps(2):""}
+    <button class="play" data-do="say" data-en="1" data-rate=".7" data-say="${esc(s)}" aria-label="${esc(t.dictPlay)}" title="${esc(t.dictPlay)}">${ic("speaker")}</button>
+    <textarea id="dzIn" class="input" rows="3" placeholder="${esc(t.dictPh)}" aria-label="${esc(t.dictPh)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>`;
+  el.innerHTML = sess(dz.idx/dz.order.length*100, t.dictQ(dz.idx+1, dz.order.length), body, primary('data-do="dzCheck"', t.dictCheck, "check"));
   const ta = el.querySelector("#dzIn");
   ta.value = dz.draft || "";
   ta.oninput = ()=>{ dz.draft = ta.value; };
-  el.querySelector("#dzPlay").onclick = ()=>speak(s, 0.7, true);
-  el.querySelector("#dzCheck").onclick = checkDictation;
+  renderChrome();
 }
 function checkDictation(){
   if(dz.res) return;
@@ -367,49 +448,47 @@ function renderDictResult(){
   const t = T(), el = view("english"), s = dz.order[dz.idx], {right, rawIn} = dz.res;
   const tw = normWords(s), iw = normWords(rawIn);
   const words = tw.map((w,i)=>`<span class="dw ${iw[i]===w?"ok":"bad"}">${esc(w)}</span>`).join(" ");
-  el.innerHTML = `<p class="muted">${esc(t.dictQ(dz.idx+1, dz.order.length))}</p>
-    <p class="verdict ${right?"pass":"fail"}">${esc(right?t.dictCorrect:t.dictWrong)}</p>
-    <p class="prompt">${words}</p>
-    ${rawIn.trim()?`<p class="muted">${esc(t.dictYour)} ${esc(rawIn.trim())}</p>`:""}
-    <button class="btn" id="dzNext">${esc(t.dictNext)}</button>`;
+  const body = `<p class="verdict ${right?"pass":"fail"}">${ic(right?"check":"x","tick")}${esc(right?t.dictCorrect:t.dictWrong)}</p>
+    <div class="prompt-row"><p class="prompt">${words}</p>${sayBtn(s, true)}</div>
+    ${rawIn.trim()?`<p class="muted">${esc(t.dictYour)} ${esc(rawIn.trim())}</p>`:""}`;
+  el.innerHTML = sess(dz.idx/dz.order.length*100, t.dictQ(dz.idx+1, dz.order.length), body, primary('data-do="dzNext"', t.dictNext, "arrow"));
   announce(right?t.dictCorrect:t.dictWrong);
-  el.querySelector("#dzNext").onclick = ()=>{ dz.res = null; dz.idx++; saveRounds(); dz.idx>=dz.order.length?renderDictDone():renderDictQ(); };
+  renderChrome();
+}
+function dzNext(){
+  dz.res = null; dz.idx++; saveRounds();
+  if(dz.idx>=dz.order.length) renderDictDone(); else renderDictQ();
 }
 function renderDictDone(){
-  bumpStreak();
-  if(dz.mock){ if(!mock) mock = {}; mock.dict = dz.ok; startMockCivics(); saveRounds(); return; }
+  if(!dz.done){ dz.done = true; bumpStreak(); }
+  if(dz.mock){ if(!mock) mock = {}; mock.dict = dz.ok; dz = null; startMockCivics(); saveRounds(); return; }
   saveRounds();
   const t = T(), el = view("english");
   const left = dzMistakes.size;
   const pass = dz.review ? left===0 : dz.ok>=1;
   const msg = dz.review ? (left===0 ? t.clearedAll : t.stillLeft(left)) : (pass ? t.passMsg : t.failMsg);
-  el.innerHTML = `<h1 class="title ${pass?"pass":"fail"}">${esc(msg)}</h1>
-    <p class="stat"><span class="num">${dz.ok}/${dz.order.length}</span></p>
-    ${dz.review&&left?`<button class="btn" id="dzAgain2">${esc(t.reviewBtn(left))}</button>`:`<button class="btn" id="dzAgain">${esc(t.intAgain)}</button>`}
-    <button class="link" id="dzBack">${esc(tabLabel("english"))}</button>`;
+  el.innerHTML = doneHTML(pass, msg, dz.ok, dz.order.length, "",
+    (dz.review&&left ? primary('data-do="dzReview"', t.reviewLabel+" ("+left+")", "redo") : primary('data-do="dictStart"', t.intAgain, "redo")) +
+    quiet('data-do="exit"', tabLabel("english")));
   announce(msg);
-  const a = el.querySelector("#dzAgain"); if(a) a.onclick = startDictation;
-  const a2 = el.querySelector("#dzAgain2"); if(a2) a2.onclick = startDzReview;
-  el.querySelector("#dzBack").onclick = ()=>{ dz=null; saveRounds(); renderEnglish(); };
+  renderChrome();
 }
 
 /* ---------- mock interview: reading, dictation, civics, N-400 ---------- */
 function startMock(){
   mock = {};
-  show("english");
   rp = { order:shuffled(READ_SENTENCES).slice(0,3), idx:0, ok:0, mock:true };
   saveRounds();
-  renderReadQ();
+  show("english");
 }
 function startMockDict(){
   dz = { order:shuffled(DICT_SENTENCES).slice(0,3), idx:0, ok:0, mock:true };
-  renderDictQ();
+  renderEnglish();
 }
 function startMockCivics(){ show("practice"); startPractice("std", true); }
 function startMockN400(){
-  show("interview");
   ipz = { order:shuffled(N400.questions).slice(0,8), idx:0, ok:0, mock:true };
-  renderInterviewQ();
+  show("interview");
 }
 function renderMockSummary(){
   const t = T(), el = view("interview");
@@ -421,70 +500,59 @@ function renderMockSummary(){
   ];
   const allPass = rows.every(r=>r[3]);
   const msg = allPass ? t.mockPassAll : t.failMsg;
-  el.innerHTML = `<h1 class="title ${allPass?"pass":"fail"}">${esc(msg)}</h1>
-    <ul class="list">${rows.map(r=>`<li class="row ${r[3]?"pass":"fail"}"><span class="grow">${esc(r[0])}</span><span class="detail">${r[1]}/${r[2]}</span></li>`).join("")}</ul>
-    <button class="btn" id="mockAgain">${esc(t.mockStart)}</button>
-    <button class="link" id="mockBack">${esc(tabLabel("interview"))}</button>`;
+  const total = rows.filter(r=>r[3]).length;
+  el.innerHTML = doneHTML(allPass, msg, total, rows.length,
+    `<ul class="summary">${rows.map(r=>`<li class="${r[3]?"pass":"fail"}">${ic(r[3]?"check":"redo")}<span class="grow">${esc(r[0])}</span><b>${r[1]}/${r[2]}</b></li>`).join("")}</ul>`,
+    primary('data-do="mock"', t.mockStart, "redo") + quiet('data-do="exit"', tabLabel("interview")));
   announce(msg);
-  el.querySelector("#mockAgain").onclick = startMock;
-  el.querySelector("#mockBack").onclick = ()=>{ mock=null; saveRounds(); renderInterview(); };
-  window.scrollTo({top:0});
+  renderChrome();
 }
 
 /* ---------- interview: N-400 Part 9 questions ---------- */
 let intFilter = "all";
 const expLabel = q => { const t = T(); return q.expected==="no" ? t.expNo : q.expected==="yes" ? t.expYes : t.expVaries; };
-function nqCardHTML(q){
+function nqRowHTML(q){
   const t = T(), other = lang==="es" ? q.en : q.es;
   return `<li class="q" data-item="${esc(q.item)}">
-    <button class="qhead" data-act="toggle" aria-expanded="false">
-      <span class="qn">${esc(q.item)}</span>
-      <span class="grow"><span class="qt">${esc(q[lang])}</span><span class="sub">${esc(expLabel(q))}</span></span>
-    </button>
-    <div class="qbody">
-      <p>${esc(other)}</p>
-      <p class="muted">${esc(t.intMeaning)}</p>
-      <p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
-      <div class="actions"><button class="link" data-act="speak">${esc(t.listen)}</button></div>
-    </div>
-  </li>`;
+    <button class="qrow" data-do="toggle" aria-expanded="false"><span class="qn">${esc(q.item)}</span>
+      <span class="grow">${esc(q[lang])}<small>${esc(expLabel(q))}</small></span>${ic("down","chev")}</button>
+    <div class="qbody"><p class="muted">${esc(other)}</p>
+      <p><b>${esc(t.intMeaning)}.</b> ${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p>
+      <div class="qbody-a">${sayBtn(q.en, true)}</div></div></li>`;
 }
 function renderInterview(){
+  if(mock && mock.done){ renderMockSummary(); return; }
   if(ipz && ipz.idx < ipz.order.length){ renderInterviewQ(); return; }
+  if(ipz && ipz.done){ renderInterviewDone(); return; }
   const t = T(), el = view("interview");
   const list = N400.questions.filter(q=>intFilter==="all"||q.expected===intFilter);
-  el.innerHTML = `${title("interview")}
-    <ul class="list">
-      ${rowBtn('id="intStart"', t.intPracticeH)}
-      ${intMistakes.size?rowBtn('id="intReview"', t.reviewBtn(intMistakes.size)):""}
-    </ul>
-    ${seg([["all",t.all],["no",t.fNo],["yes",t.fYes],["varies",t.fDep]], "data-if", v=>intFilter===v)}
-    <ul class="list">${list.map(nqCardHTML).join("")}</ul>`;
-  el.querySelector("#intStart").onclick = startInterviewPractice;
-  const ir = el.querySelector("#intReview"); if(ir) ir.onclick = startInterviewReview;
+  el.innerHTML = `<div class="wrap fill ivw">
+    <div class="side-tools">${pageTitle("interview")}
+      ${primary('data-do="intStart"', t.intPracticeH, "play")}
+      ${intMistakes.size?quiet('data-do="intReview"', t.reviewLabel+" ("+intMistakes.size+")", "redo"):""}
+      ${seg([["all",t.all],["no",t.fNo],["yes",t.fYes],["varies",t.fDep]], "ifilter", v=>intFilter===v)}</div>
+    <ul class="qlist">${list.map(nqRowHTML).join("")}</ul></div>`;
+  renderChrome();
 }
 function startInterviewPractice(){
   ipz = { order:shuffled(N400.questions).slice(0,10), idx:0, ok:0, review:false };
   saveRounds();
-  renderInterviewQ();
+  renderInterview();
 }
 function startInterviewReview(){
   const qs = N400.questions.filter(q=>intMistakes.has(q.item));
   if(!qs.length){ renderInterview(); return; }
   ipz = { order:shuffled(qs), idx:0, ok:0, review:true };
   saveRounds();
-  renderInterviewQ();
+  renderInterview();
 }
 function renderInterviewQ(){
   if(ipz.res){ renderInterviewResult(); return; }
   const t = T(), el = view("interview"), q = ipz.order[ipz.idx];
-  el.innerHTML = `${ipz.mock?mockBanner(4):""}
-    <p class="muted">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</p>
-    <p class="prompt">${esc(q.en)}</p>
-    <button class="link" id="intSpeak">${esc(t.listen)}</button>
-    <div class="pair"><button class="btn quiet" data-yn="y">${esc(t.intYes)}</button>
-    <button class="btn quiet" data-yn="n">${esc(t.intNo)}</button></div>`;
-  el.querySelector("#intSpeak").onclick = ()=>speak(q.en, 0, true);
+  const body = `${ipz.mock?mockSteps(4):""}<div class="prompt-row"><h2 class="prompt">${esc(q.en)}</h2>${sayBtn(q.en, true)}</div>`;
+  const foot = `<div class="pair"><button class="btn quiet" data-do="yn" data-v="n">${esc(t.intNo)}</button><button class="btn quiet" data-do="yn" data-v="y">${esc(t.intYes)}</button></div>`;
+  el.innerHTML = sess(ipz.idx/ipz.order.length*100, t.intQ(ipz.idx+1, ipz.order.length), body, foot);
+  renderChrome();
 }
 function interviewAnswer(yes){
   if(ipz.res) return;
@@ -499,45 +567,94 @@ function interviewAnswer(yes){
 function renderInterviewResult(){
   const t = T(), el = view("interview"), q = ipz.order[ipz.idx], right = ipz.res.right;
   const varies = q.expected==="varies";
-  el.innerHTML = `<p class="muted">${esc(t.intQ(ipz.idx+1, ipz.order.length))}</p>
-    <p class="prompt">${esc(q.en)}</p>
-    <p class="verdict ${right?"pass":"fail"}">${esc(right?t.intCorrect:t.intWrong)}</p>
-    ${varies?""
-      :`<p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p><p class="muted">${esc(lang==="es"?q.en:q.es)}</p>`}
-    <button class="btn" id="intNext">${esc(t.intNext)}</button>`;
+  const body = `<p class="verdict ${right?"pass":"fail"}">${ic(right?"check":"x","tick")}${esc(right?t.intCorrect:t.intWrong)}</p>
+    <div class="prompt-row"><p class="prompt sm">${esc(q.en)}</p>${sayBtn(q.en, true)}</div>
+    ${varies?"":`<p>${esc(q[lang==="es"?"meaning_es":"meaning_en"])}</p><p class="muted">${esc(lang==="es"?q.en:q.es)}</p>`}`;
+  el.innerHTML = sess(ipz.idx/ipz.order.length*100, t.intQ(ipz.idx+1, ipz.order.length), body, primary('data-do="intNext"', t.intNext, "arrow"));
   announce(right?t.intCorrect:t.intWrong);
-  el.querySelector("#intNext").onclick = ()=>{ ipz.res = null; ipz.idx++; saveRounds(); ipz.idx>=ipz.order.length?renderInterviewDone():renderInterviewQ(); };
+  renderChrome();
+}
+function intNext(){
+  ipz.res = null; ipz.idx++; saveRounds();
+  if(ipz.idx>=ipz.order.length) renderInterviewDone(); else renderInterviewQ();
 }
 function renderInterviewDone(){
-  if(ipz.mock){ if(!mock) mock = {}; mock.n400 = ipz.ok; renderMockSummary(); saveRounds(); return; }
+  if(!ipz.done){ ipz.done = true; bumpStreak(); }
+  if(ipz.mock){ if(!mock) mock = {}; mock.n400 = ipz.ok; mock.done = true; ipz = null; saveRounds(); renderMockSummary(); return; }
   saveRounds();
   const t = T(), el = view("interview");
   const left = intMistakes.size;
   const msg = ipz.review ? (left===0 ? t.clearedAll : t.stillLeft(left)) : t.intDone;
-  el.innerHTML = `<h1 class="title">${esc(msg)}</h1>
-    <p class="stat"><span class="num">${ipz.ok}/${ipz.order.length}</span></p>
-    ${ipz.review&&left?`<button class="btn" id="intAgain2">${esc(t.reviewBtn(left))}</button>`:`<button class="btn" id="intAgain">${esc(t.intAgain)}</button>`}
-    <button class="link" id="intBack">${esc(tabLabel("interview"))}</button>`;
+  el.innerHTML = doneHTML(true, msg, ipz.ok, ipz.order.length, "",
+    (ipz.review&&left ? primary('data-do="intReview"', t.reviewLabel+" ("+left+")", "redo") : primary('data-do="intStart"', t.intAgain, "redo")) +
+    quiet('data-do="exit"', tabLabel("interview")));
   announce(msg);
-  const a = el.querySelector("#intAgain"); if(a) a.onclick = startInterviewPractice;
-  const a2 = el.querySelector("#intAgain2"); if(a2) a2.onclick = startInterviewReview;
-  el.querySelector("#intBack").onclick = ()=>{ ipz=null; saveRounds(); renderInterview(); };
+  renderChrome();
 }
 
 /* ---------- guide ---------- */
-function renderGuide(){
-  const t = T(), el = view("guide");
-  const done = loadCheck();
+let guideSec = "elig", guideOpen = false;
+function guideSections(){
+  const t = T(), done = loadCheck();
   const n = CHECKLIST.filter(c=>done.has(c.id)).length;
-  const item = c => `<label class="check"><input type="checkbox" data-chk="${c.id}"${done.has(c.id)?" checked":""}><span>${esc(c[lang])}${c.cond?` (${esc(t.checkCond)})`:""}</span></label>`;
-  const section = (name, body) => `<details><summary>${esc(name)}</summary>${body}</details>`;
-  el.innerHTML = `${title("guide")}
-    ${section(t.eligH, `<ul>${t.elig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`)}
-    ${section(t.stepsH, `<ol>${t.steps.map(s=>`<li><strong>${esc(s[0])}</strong> ${esc(s[1])}</li>`).join("")}</ol>`)}
-    ${section(t.feesH, `<ul class="list">${t.feeRows.map(r=>rowInfo(r[0], r[1])).join("")}</ul>`)}
-    ${section(t.excH, `<ul>${t.excs.map(e=>`<li><strong>${esc(e[0])}</strong> ${esc(e[1])}</li>`).join("")}</ul>`)}
-    ${section(t.checkTitle, `<p class="muted" id="chkCount">${esc(t.checkProgress(n, CHECKLIST.length))}</p>${CHECKLIST.map(item).join("")}
-      <p class="muted">${esc(t.checkNote)}</p><button class="link" id="chkReset">${esc(t.checkReset)}</button>`)}
-    ${section(t.dayH, `<ul>${t.dayTips.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`)}
-    ${section(t.resTitle, `<ul class="list">${t.res.map(r=>`<li class="row"><span class="grow"><a href="${r[2]}" target="_blank" rel="noopener">${esc(r[0])}</a><span class="sub">${esc(r[1])}</span></span></li>`).join("")}</ul>`)}`;
+  const item = c => `<label class="check"><input type="checkbox" data-chk="${c.id}"${done.has(c.id)?" checked":""}><span class="box">${ic("check")}</span><span>${esc(c[lang])}${c.cond?` (${esc(t.checkCond)})`:""}</span></label>`;
+  return [
+    ["elig", t.eligH, "check", `<ul class="plain">${t.elig.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`],
+    ["steps", t.stepsH, "arrow", `<ol class="plain">${t.steps.map(s=>`<li><strong>${esc(s[0])}</strong> ${esc(s[1])}</li>`).join("")}</ol>`],
+    ["fees", t.feesH, "test", `<ul class="rows">${t.feeRows.map(r=>`<li><span class="grow">${esc(r[0])}</span><b>${esc(r[1])}</b></li>`).join("")}</ul>`],
+    ["exc", t.excH, "star", `<ul class="plain">${t.excs.map(e=>`<li><strong>${esc(e[0])}</strong> ${esc(e[1])}</li>`).join("")}</ul>`],
+    ["check", t.checkTitle, "test", `<p class="muted" id="chkCount">${esc(t.checkProgress(n, CHECKLIST.length))}</p>${CHECKLIST.map(item).join("")}
+      <p class="muted">${esc(t.checkNote)}</p><button class="btn quiet" data-do="chkReset">${ic("redo")}${esc(t.checkReset)}</button>`],
+    ["day", t.dayH, "cal", `<ul class="plain">${t.dayTips.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`],
+    ["res", t.resTitle, "book", `<ul class="rows">${t.res.map(r=>`<li><span class="grow"><a href="${r[2]}" target="_blank" rel="noopener">${esc(r[0])}</a><small>${esc(r[1])}</small></span></li>`).join("")}</ul>`],
+  ];
+}
+function renderGuide(){
+  const t = T(), el = view("guide"), secs = guideSections();
+  const cur = secs.find(s=>s[0]===guideSec) || secs[0];
+  el.innerHTML = `<div class="wrap fill guide" data-pane="${guideOpen?"detail":"list"}">
+    <div class="pane gl">${pageTitle("guide")}<ul class="opts">${secs.map(s=>
+      `<li><button class="opt${s[0]===cur[0]?" cur":""}" data-do="gsec" data-v="${s[0]}"><span class="opt-i">${ic(s[2])}</span><span class="grow"><b>${esc(s[1])}</b></span>${ic("right","chev")}</button></li>`).join("")}</ul></div>
+    <div class="pane gd"><div class="subhead">${iconBtn("left", t.back, 'data-do="gback"')}<h1>${esc(cur[1])}</h1></div><div class="gd-body">${cur[3]}</div></div></div>`;
+}
+function updateChecklistCount(){
+  const el = document.getElementById("chkCount");
+  if(el) el.textContent = T().checkProgress(CHECKLIST.filter(c=>loadCheck().has(c.id)).length, CHECKLIST.length);
+}
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  const t = T(), el = view("settings"), date = getIDate();
+  const bankOpt = (v, label, count, yr) => `<button class="opt radio" data-do="filed" data-v="${v}" aria-pressed="${filed===v}"><span class="dot"></span><span class="grow"><b>${esc(label)}</b><small>${esc(t.bankSub(yr, count))}</small></span></button>`;
+  el.innerHTML = `<div class="wrap narrow"><h1 class="page-title">${esc(t.settingsH)}</h1>
+    <section><h2>Language / Idioma</h2><div class="seg big">
+      <button data-do="lang" data-v="en" aria-pressed="${lang==="en"}">English</button><button data-do="lang" data-v="es" aria-pressed="${lang==="es"}">Español</button></div></section>
+    <section><h2>${esc(t.filingTitle)}</h2><div class="opts">
+      ${bankOpt("after", t.filedAfter, QUESTIONS.length, 2025)}${bankOpt("before", t.filedBefore, QUESTIONS2008.length, 2008)}</div></section>
+    <section><h2>${esc(t.cdDate)}</h2><div class="field"><input type="date" id="cdDate" value="${esc(date)}" aria-label="${esc(t.cdDate)}">
+      ${date?iconBtn("x", t.cdClear, 'data-do="cdClear"'):""}</div></section>
+    <p class="disc">${esc(t.disc)}</p></div>`;
+  renderChrome();
+}
+
+/* ---------- onboarding ---------- */
+let obStep = 0, obFiled = "after", obDate = "";
+function renderOnboard(){
+  const t = T(), el = document.getElementById("onboard");
+  el.hidden = false;
+  document.documentElement.lang = lang;
+  if(obStep === 0){
+    el.innerHTML = `<div class="ob"><div class="ob-brand">${ic("check")}<span>Oath</span></div>
+      <div class="ob-main"><h1>Study for the U.S. citizenship interview.</h1>
+        <p class="muted">Estudia para la entrevista de ciudadanía de EE. UU.</p>
+        <div class="ob-lang"><button data-do="obLang" data-v="en">English<small>Study in English</small></button>
+          <button data-do="obLang" data-v="es">Español<small>Estudiar en español</small></button></div></div></div>`;
+    return;
+  }
+  const bankOpt = (v, label, count, yr) => `<button class="opt radio" data-do="obFiled" data-v="${v}" aria-pressed="${obFiled===v}"><span class="dot"></span><span class="grow"><b>${esc(label)}</b><small>${esc(t.bankSub(yr, count))}</small></span></button>`;
+  el.innerHTML = `<div class="ob"><div class="ob-top">${iconBtn("left", t.back, 'data-do="obBack"')}<div class="steps"><i class="on"></i><i class="on"></i></div></div>
+    <div class="ob-main"><h1>${esc(t.filingTitle)}</h1>
+      <div class="opts">${bankOpt("after", t.filedAfter, QUESTIONS.length, 2025)}${bankOpt("before", t.filedBefore, QUESTIONS2008.length, 2008)}</div>
+      <label class="datefield"><span>${ic("cal")}${esc(t.cdDate)} <small>${esc(t.optional)}</small></span><input type="date" id="obDate" value="${esc(obDate)}"></label></div>
+    <div class="ob-foot">${primary('data-do="obDone"', t.obStart, "arrow")}</div></div>`;
 }
