@@ -51,7 +51,10 @@ const ACT = {
   reveal: () => { studyShown = true; fillStudyCard(); },
   prev: () => studyStep(-1),
   next: () => studyStep(1),
-  known: el => studyToggleKnown(el),
+  got: () => studyMark(true),
+  learn: () => studyMark(false),
+  goEnglish: () => show("english"),
+  goInterview: () => show("interview"),
   restart: () => { studyReset(); studyIdx = 0; renderStudy(); },
   /* practice */
   start: el => startPractice(el.dataset.p),
@@ -126,7 +129,8 @@ document.addEventListener("keydown", e=>{
   if(k==="ArrowRight") studyStep(1);
   else if(k==="ArrowLeft") studyStep(-1);
   else if(k===" " || k==="Enter"){ e.preventDefault(); if(!studyShown && !studyEnd){ studyShown = true; fillStudyCard(); } }
-  else if(k==="k" || k==="K"){ const b = document.querySelector(".checkbtn"); if(b && !b.disabled) studyToggleKnown(b); }
+  else if(studyShown && !studyEnd && (k==="k" || k==="K")) studyMark(true);
+  else if(studyShown && !studyEnd && (k==="j" || k==="J")) studyMark(false);
   else return;
 });
 

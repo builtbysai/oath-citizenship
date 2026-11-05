@@ -62,6 +62,7 @@ function sessionActive(){
 function langToggle(){
   return `<button data-do="lang" data-v="en" aria-pressed="${lang==="en"}">EN</button><button data-do="lang" data-v="es" aria-pressed="${lang==="es"}">ES</button>`;
 }
+const brandHTML = `<span class="mark">${ic("star")}</span><span class="word-mark">Oath</span>`;
 function renderChrome(){
   const t = T();
   document.documentElement.lang = lang;
@@ -69,10 +70,15 @@ function renderChrome(){
   document.getElementById("tabs").innerHTML =
     t.tabs.map(([id,lb])=>tab(id,lb,"tab")).join("") + tab("settings", t.settingsH, "tab");
   document.getElementById("bar").innerHTML = BAR_TABS.map(id=>tab(id,tabLabel(id),"tab")).join("");
-  document.getElementById("top").innerHTML = `<h1 class="top-title">${esc(curView==="home"?"Oath":curView==="settings"?t.settingsH:tabLabel(curView))}</h1>
+  document.getElementById("top").innerHTML = curView==="home"
+    ? `<button class="brand" data-do="goto" data-v="home" aria-label="Oath">${brandHTML}</button>`
+    : `<h1 class="top-title">${esc(curView==="settings"?t.settingsH:tabLabel(curView))}</h1>`;
+  document.getElementById("top").innerHTML += `
+    <span class="grow"></span>
     <div class="lang" role="group" aria-label="Language / Idioma">${langToggle()}</div>
     ${iconBtn("guide", tabLabel("guide"), 'data-do="goto" data-v="guide"'+(curView==="guide"?' aria-current="page"':""))}
     ${iconBtn("sliders", t.settingsH, 'data-do="goto" data-v="settings"'+(curView==="settings"?' aria-current="page"':""))}`;
+  document.getElementById("brandSide").innerHTML = brandHTML;
   document.getElementById("langSide").innerHTML = langToggle();
   document.getElementById("disclaimer").textContent = t.disc;
   document.getElementById("app").classList.toggle("focus", sessionActive());
@@ -85,32 +91,48 @@ function nextStep(){
   if(unseen>0) return {act:"study", label:t.heroStudy, sub:t.leftCount(unseen), icon:"play"};
   return {act:"practice", label:t.heroTest, icon:"test"};
 }
+const ringHTML = (val, total, big, good, label, center) => {
+  const off = total ? 276.5*(1-val/total) : 276.5;
+  return `<div class="ring${big?" big":""}${good?" good":""}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(label||"")}"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${off.toFixed(1)}"/></svg>
+    <div class="ring-n">${center||`<b>${val}</b><small>/ ${total}</small>`}</div></div>`;
+};
 function renderHome(){
   const t = T(), el = view("home");
   const total = Q().length, knownN = knownIn(Q());
   const streak = getStreak(), n = daysLeft(), hasDate = getIDate() !== "" && n !== null;
-  const cd = !hasDate ? t.cdAdd : n < 0 ? t.cdPast : n === 0 ? t.cdToday : t.interviewIn(n);
   const next = nextStep();
-  const off = total ? 276.5*(1-knownN/total) : 276.5;
   const mcount = [...mistakes].filter(k=>k.startsWith(filed==="before"?"08:":"25:")).length;
-  const tile = (icon, label, act) => `<button class="tile" data-do="${act}">${ic(icon)}<span>${esc(label)}</span></button>`;
-  el.innerHTML = `<div class="wrap home">
-    <section class="hero">
-      <div class="ring ${knownN===total&&total?"good":""}"><svg viewBox="0 0 100 100" role="img" aria-label="${esc(t.knownCount(knownN,total))}"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${off.toFixed(1)}"/></svg>
-        <div class="ring-n"><b>${knownN}</b><small>${esc(t.ofTotal(total))}</small></div></div>
-      <div class="hero-side">
-        <div class="chip streak${streakToday()?" lit":""}" ${streak?"":"hidden"}>${ic("flame")}<span>${esc(t.streakLine(streak))}</span></div>
-        <button class="chip" data-do="goto" data-v="settings">${ic("cal")}<span>${esc(cd)}</span></button>
+  const weak = weakestCats().length > 0;
+  let count;
+  if(!hasDate) count = `<button class="count-box none" data-do="goto" data-v="settings">${ic("cal")}<span>${esc(t.tapSetDate)}</span></button>`;
+  else if(n < 0) count = `<button class="count-box" data-do="goto" data-v="settings">${ic("cal")}<span>${esc(t.cdPast)}</span></button>`;
+  else if(n === 0) count = `<button class="count-box" data-do="goto" data-v="settings">${ic("cal")}<span>${esc(t.cdToday)}</span></button>`;
+  else count = `<button class="count-box" data-do="goto" data-v="settings"><b>${n}</b><span>${esc(t.daysWord(n))} ${esc(t.untilInterview)}</span></button>`;
+  const card = (icon, label, sub, act, c, badge) => `<button class="lcard" style="--c:${c}" data-do="${act}"><span class="lc-i">${ic(icon)}</span>
+    <span class="grow"><b>${esc(label)}</b><small>${esc(sub)}</small></span>${badge?`<span class="badge">${badge}</span>`:""}</button>`;
+  const cards = [
+    card("test", t.tilePractice, filed==="before"?t.subPractice08:t.subPractice, "practice", "#2f56d6"),
+    card("award", t.tileMock, t.subMock, "mock", "#c8412f"),
+    card("abc", tabLabel("english"), t.subEnglish, "goEnglish", "#1a8a58"),
+    card("talk", tabLabel("interview"), t.subInterview, "goInterview", "#b8780a"),
+  ];
+  const extra = [];
+  if(mcount) extra.push(card("redo", t.reviewLabel, t.subReview, "review", "#7a4fd0", mcount));
+  if(weak) extra.push(card("target", t.weakLine, t.subWeak, "weak", "#0f8aa8"));
+  el.innerHTML = `<div class="home${extra.length?" has-extra":""}">
+    <section class="hero" aria-label="${esc(t.knownCount(knownN,total))}">
+      <div class="hero-row">
+        ${ringHTML(knownN, total, false, knownN===total&&total, t.knownCount(knownN,total), `<b>${total?Math.round(knownN/total*100):0}<i>%</i></b>`)}
+        <div class="hero-info">
+          <p class="hero-k">${knownN} ${esc(t.ofTotal(total))}<span>${esc(t.learned)}</span></p>
+          ${count}
+          ${streak?`<span class="chip streak${streakToday()?" lit":""}">${ic("flame")}<span>${esc(t.streakLine(streak))}</span></span>`:""}
+        </div>
       </div>
       <button class="cta" data-do="${next.act}">${ic(next.icon)}<span class="grow"><b>${esc(next.label)}</b>${next.sub?`<small>${esc(next.sub)}</small>`:""}</span>${ic("right","chev")}</button>
     </section>
-    <section class="tiles">
-      ${tile("test", t.tilePractice, "practice")}
-      ${tile("award", t.tileMock, "mock")}
-      ${weakestCats().length?tile("target", t.weakLine, "weak"):""}
-      ${mcount?tile("redo", t.reviewLabel, "review"):""}
-    </section>
-    <section class="topics wide-only">
+    <section class="launch">${cards.concat(extra).join("")}</section>
+    <section class="topics">
       <h2>${esc(t.topicsH)}</h2>
       <ul>${cats().map(c=>{
         const p = catProgress(c), full = p.total && p.known===p.total;
@@ -151,13 +173,15 @@ function answerHTML(q){
     return `<div class="varies"><p><strong>${esc(t.variesTitle)}</strong></p>${current}
       <a href="${VARIES_LINK[key]}" target="_blank" rel="noopener">${esc(t.variesLinkLabel[linkKey]||t.variesLinkLabel.office)}</a></div>`;
   }
-  return `<ul class="answers" aria-label="${esc(t.answersLabel)}">${q.a[lang].map(a=>`<li>${esc(a)}</li>`).join("")}</ul>`;
+  const a = q.a[lang];
+  return `${a.length>1?`<p class="ans-label">${esc(t.answersLabel)}</p>`:""}<ul class="answers${a.length>5?" many":""}">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
 }
 function renderStudy(){
   const t = T(), el = view("study");
   if(studyFresh){ studyReset(); studyFresh = false; }
-  el.innerHTML = `<div class="wrap fill study" data-pane="${studyPane}">
-    <div class="tools">
+  const kn = knownIn(Q());
+  el.innerHTML = `<div class="study" data-pane="${studyPane}">
+    <header class="s-head">
       <label class="select"><select id="studyCat" aria-label="${esc(t.topicsH)}">
         <option value="all"${studyCat==="all"?" selected":""}>${esc(t.allTopics)}</option>
         ${cats().map(c=>{ const p = catProgress(c); return `<option value="${esc(c)}"${studyCat===c?" selected":""}>${esc(catLabel(c))} (${p.known}/${p.total})</option>`; }).join("")}
@@ -167,7 +191,7 @@ function renderStudy(){
         ${iconBtn("cards", t.viewCards, `data-do="pane" data-v="card" aria-pressed="${studyPane==="card"}"`)}
         ${iconBtn("list", t.viewList, `data-do="pane" data-v="list" aria-pressed="${studyPane==="list"}"`)}
       </div>
-    </div>
+    </header>
     <div class="pane pane-list">
       <label class="search">${ic("search")}<input id="qsearch" type="search" placeholder="${esc(t.searchPh)}" value="${esc(studyQ)}" aria-label="${esc(t.searchPh)}" autocomplete="off"></label>
       <ul class="qlist" id="qlist"></ul>
@@ -181,7 +205,7 @@ function fillStudyList(){
   ul.innerHTML = list.length ? list.map((q,i)=>{
     const k = known.has(qkey(q.n));
     return `<li><button class="qrow${i===studyIdx&&!studyEnd?" cur":""}${k?" known":""}" data-do="pick" data-i="${i}">
-      <span class="qn">${q.n}</span><span class="grow">${esc(q.q[lang])}</span>${k?ic("check","tick"):""}</button></li>`;
+      <span class="qn">${q.n}</span><span class="grow">${esc(q.q[lang])}</span><span class="dot-st" aria-label="${k?esc(t.knowIt):""}">${k?ic("check"):""}</span></button></li>`;
   }).join("") : `<li class="empty">${esc(t.noResults)}</li>`;
   const cur = ul.querySelector(".cur"); if(cur && cur.scrollIntoView) cur.scrollIntoView({block:"nearest"});
 }
@@ -192,8 +216,7 @@ function fillStudyCard(){
   const kn = knownIn(list);
   if(studyEnd){
     const all = kn===list.length;
-    el.innerHTML = `<div class="fc end"><div class="ring big ${all?"good":"warn"}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="trk" cx="50" cy="50" r="44"/><circle class="val" cx="50" cy="50" r="44" style="--to:${(276.5*(1-kn/list.length)).toFixed(1)}"/></svg>
-        <div class="ring-n"><b>${kn}</b><small>/ ${list.length}</small></div></div>
+    el.innerHTML = `<div class="fc end">${ringHTML(kn, list.length, true, all)}
       <h2 class="verdict ${all?"pass":""}">${all?ic("check","tick"):""}${esc(all?t.deckAll:t.deckEnd)}</h2>
       <div class="end-actions">${primary('data-do="restart"', t.startOver, "redo")}${quiet('data-do="practice"', t.tilePractice, "test")}</div></div>`;
     return;
@@ -201,18 +224,19 @@ function fillStudyCard(){
   if(studyIdx >= list.length) studyIdx = list.length-1;
   const q = list[studyIdx], k = known.has(qkey(q.n));
   const say = q.q[lang] + ". " + q.a[lang].join(", ");
+  const foot = studyShown
+    ? `<button class="btn soft" data-do="learn">${ic("redo")}${esc(t.stillLearning)}</button>
+       <button class="btn good" data-do="got">${ic("check")}${esc(t.gotIt)}</button>`
+    : `<button class="btn" data-do="reveal">${esc(t.showAnswer)}</button>`;
   el.innerHTML = `<div class="fc">
-    <div class="fc-head"><span class="pos">${studyIdx+1} / ${list.length}</span>${bar(kn/list.length*100)}</div>
-    <div class="fc-card">
-      <div class="fc-meta"><span>${esc(lang==="es"?q.cat_es:q.cat)}${q.star?" · 65/20":""}</span>${sayBtn(say)}</div>
-      <p class="fc-q"><span class="qn">${q.n}</span>${esc(q.q[lang])}</p>
-      <div class="fc-a">${studyShown ? answerHTML(q) : `<button class="btn quiet" data-do="reveal">${esc(t.showAnswer)}</button>`}</div>
-    </div>
-    <div class="fc-foot">
-      ${iconBtn("left", t.prev, `data-do="prev"${studyIdx===0?" disabled":""}`, "lg")}
-      <button class="checkbtn${k?" on":""}" data-do="known" aria-pressed="${k}" aria-label="${esc(t.knowIt)}" title="${esc(t.knowIt)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></button>
-      ${iconBtn("right", t.next, 'data-do="next"', "lg")}
-    </div></div>`;
+    <div class="fc-head">${iconBtn("left", t.prev, `data-do="prev"${studyIdx===0?" disabled":""}`)}<span class="pos">${studyIdx+1} / ${list.length}</span>${bar(kn/list.length*100)}<span class="pos ok">${kn}${ic("check")}</span>${iconBtn("right", t.next, 'data-do="next"')}</div>
+    <article class="fc-card${k?" is-known":""}${studyShown?" shown":""}">
+      <div class="fc-meta"><span class="qnum">${q.n}</span><span class="cat">${esc(lang==="es"?q.cat_es:q.cat)}${q.star?" · 65/20":""}</span>${k?`<span class="kbadge">${ic("check")}</span>`:""}${sayBtn(say)}</div>
+      <p class="fc-q">${esc(q.q[lang])}</p>
+      ${studyShown ? `<div class="fc-a">${answerHTML(q)}</div>`
+        : `<button class="fc-hint" data-do="reveal">${esc(t.tapReveal)}</button>`}
+    </article>
+    <div class="fc-foot${studyShown?" two":""}">${foot}</div></div>`;
 }
 function studyStep(d){
   const len = filteredQuestions().length;
@@ -223,18 +247,17 @@ function studyStep(d){
   else studyIdx = Math.max(0, studyIdx-1);
   fillStudyList(); fillStudyCard();
 }
-function studyToggleKnown(btn){
+/* Mark the current card known (or still learning) and move on. */
+function studyMark(now){
   const list = filteredQuestions(), q = list[studyIdx];
   if(!q || studyEnd) return;
-  const k = qkey(q.n), now = !known.has(k);
+  const k = qkey(q.n), was = known.has(k);
   now ? known.add(k) : known.delete(k);
-  saveKnown();
+  if(was !== now) saveKnown();
   if(now) bumpStreak();
-  btn.classList.toggle("on", now); btn.setAttribute("aria-pressed", now);
-  if(!now){ fillStudyList(); return; }
-  btn.classList.add("pop");
-  btn.disabled = true;
-  setTimeout(()=>{ if(curView==="study"){ studyStep(1); renderChrome(); } }, 480);
+  const card = document.querySelector(".fc-card");
+  if(card && now){ card.classList.add("flash"); }
+  setTimeout(()=>{ if(curView==="study"){ studyStep(1); renderChrome(); } }, now ? 260 : 0);
 }
 
 /* ---------- practice (civics) ---------- */
@@ -644,7 +667,7 @@ function renderOnboard(){
   el.hidden = false;
   document.documentElement.lang = lang;
   if(obStep === 0){
-    el.innerHTML = `<div class="ob"><div class="ob-brand">${ic("check")}<span>Oath</span></div>
+    el.innerHTML = `<div class="ob"><div class="ob-brand">${brandHTML}</div>
       <div class="ob-main"><h1>Study for the U.S. citizenship interview.</h1>
         <p class="muted">Estudia para la entrevista de ciudadanía de EE. UU.</p>
         <div class="ob-lang"><button data-do="obLang" data-v="en">English<small>Study in English</small></button>

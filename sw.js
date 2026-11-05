@@ -6,7 +6,7 @@
    - Static assets (icons, manifest): STALE-WHILE-REVALIDATE.
      Serve the cached copy instantly, refresh it in the background.
    - On activate: delete any caches from older versions. */
-const CACHE = 'oath-v2';
+const CACHE = 'oath-v3';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

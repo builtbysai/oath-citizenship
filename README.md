@@ -9,7 +9,7 @@ A free, bilingual (English / Español) study app for the U.S. naturalization civ
 - Full mock interview
 - Spaced repetition, streaks, interview countdown, read-aloud
 - First-launch setup (language, test version, interview date) that lands in a study session
-- Responsive: bottom bar on phones, sidebar and side-by-side panes on desktop
+- Responsive and viewport-fit: bottom bar on phones, sidebar and side-by-side panes on desktop; no page scrolling on Home or Study
 
 ## Build
 
